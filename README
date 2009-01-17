@@ -1,7 +1,5 @@
 A wxpython program to store screenshots in Amazon Web Services S3
 
-At this moment only can get information about buckets and keys.
-
 You need to add s3accounts.py in the same directory as the script.
 
 s3accounts.py only needs a line like this.
@@ -13,3 +11,10 @@ Requirements
 Python 2.6 or +
 wxPython ( wxwidgets module for python ) : 2.8.9.1 or +
 boto ( python module to manipulate s3 )
+
+
+License:  Apache
+Author: Domingo Aguilera ( aka batok ) domingo.aguilera@gmail.com
+
+TODO: Asynchronous upload to s3
+

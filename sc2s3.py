@@ -4,6 +4,27 @@ import os
 import sys
 import wx.html as html
 import s3accounts
+import time
+from datetime import datetime
+
+
+class Screenshot(object):
+	def __init__(self, filename = "snap.png"):
+		self.filename = filename
+		try:
+			p = wx.GetDisplaySize()
+                        self.p = p
+                        bitmap = wx.EmptyBitmap( p.x, p.y)
+                        dc = wx.ScreenDC()
+                        memdc = wx.MemoryDC()
+                        memdc.SelectObject(bitmap)
+                        memdc.Blit(0,0, p.x, p.y, dc, 0,0)
+                        memdc.SelectObject(wx.NullBitmap)
+                        bitmap.SaveFile(filename, wx.BITMAP_TYPE_PNG )
+
+                except:
+                        self.filename = ""
+
 
 class HtmlWindowViewer(html.HtmlWindow):
 	def __init__(self, parent, id):
@@ -25,9 +46,12 @@ class MainFrame( wx.Frame ):
 		self.Bind(wx.EVT_MENU, self.OnSetBucket, bucket.Append(-1, "Set Bucket"))
 		self.Bind(wx.EVT_MENU, self.OnListFiles, bucket.Append(-1, "List Files"))
 		self.Bind(wx.EVT_MENU, self.OnAcl, bucket.Append(-1, "Acl"))
+		screenshot = wx.Menu()
+		self.Bind(wx.EVT_MENU, self.OnScreenshot, screenshot.Append( -1, u"Do it!"))
 		wx.EVT_CLOSE(self, lambda _: self.Destroy() )
 		mb.Append( accounts_menu, "Accounts")
 		mb.Append( bucket, "Bucket" )
+		mb.Append( screenshot, "Screenshot")
 		self.SetMenuBar( mb )
 		self.panel = wx.Panel(self, -1)
 		self.sizer = wx.BoxSizer(wx.VERTICAL)
@@ -47,6 +71,21 @@ class MainFrame( wx.Frame ):
 		os.environ['AWS_ACCESS_KEY_ID'] = s3accounts.accounts[account_name][0]
 		os.environ['AWS_SECRET_ACCESS_KEY'] = s3accounts.accounts[account_name][1]
 		self.connection = con.S3Connection()
+
+	def OnScreenshot(self, event):
+		wx.MessageBox(u"You got 5 seconds to go!", "Warning" )
+		time.sleep( 5 )
+		sfile = "screenshot{0}".format(datetime.now())
+		for x in " .-:":
+			sfile = sfile.replace(x , "")
+    		sfile = "{0}.png".format(sfile)
+		Screenshot(filename = sfile)
+		key = self.bucket.new_key( sfile )
+		f = open( sfile, "rb")
+		key.set_contents_from_file( f )
+		f.close()
+		wx.MessageBox(u"{0} file is in bucket {1}".format(sfile,self.bucket_name), "Warning" )
+
 
 	def BuildListCtrl(self):
 		try:
