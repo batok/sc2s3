@@ -6,6 +6,7 @@ import wx.html as html
 import s3accounts
 import time
 from datetime import datetime
+IMAGE_WIDTH = 100
 
 
 class Screenshot(object):
@@ -13,17 +14,17 @@ class Screenshot(object):
 		self.filename = filename
 		try:
 			p = wx.GetDisplaySize()
-                        self.p = p
-                        bitmap = wx.EmptyBitmap( p.x, p.y)
-                        dc = wx.ScreenDC()
-                        memdc = wx.MemoryDC()
-                        memdc.SelectObject(bitmap)
-                        memdc.Blit(0,0, p.x, p.y, dc, 0,0)
-                        memdc.SelectObject(wx.NullBitmap)
-                        bitmap.SaveFile(filename, wx.BITMAP_TYPE_PNG )
+			self.p = p
+			bitmap = wx.EmptyBitmap( p.x, p.y)
+			dc = wx.ScreenDC()
+			memdc = wx.MemoryDC()
+			memdc.SelectObject(bitmap)
+			memdc.Blit(0,0, p.x, p.y, dc, 0,0)
+			memdc.SelectObject(wx.NullBitmap)
+			bitmap.SaveFile(filename, wx.BITMAP_TYPE_PNG )
 
-                except:
-                        self.filename = ""
+		except:
+			self.filename = ""
 
 
 class HtmlWindowViewer(html.HtmlWindow):
@@ -33,7 +34,6 @@ class HtmlWindowViewer(html.HtmlWindow):
 class MainFrame( wx.Frame ):
 	def __init__(self):
 		wx.Frame.__init__(  self, None, -1, "Screenshot to s3", size = (800,600))
-		self.OnAccount()
 		mb = wx.MenuBar()
 		accounts_menu = wx.Menu()
 		self.accounts = dict()
@@ -55,12 +55,17 @@ class MainFrame( wx.Frame ):
 		self.SetMenuBar( mb )
 		self.panel = wx.Panel(self, -1)
 		self.sizer = wx.BoxSizer(wx.VERTICAL)
+		self.label = wx.StaticText(self.panel, -1, "...")
+		self.sizer.Add( self.label, 1, wx.GROW)
 		self.list = wx.ListCtrl(self.panel, -1, style = wx.LC_REPORT)
 		self.sizer.Add( self.list, 1, wx.GROW)
+		self.staticbitmap = wx.StaticBitmap(self.panel,-1,wx.EmptyBitmap( 100,100))
+		self.sizer.Add( self.staticbitmap, 1, wx.GROW)
 		self.html = HtmlWindowViewer( self.panel, -1)
 		self.sizer.Add( self.html, 1, wx.GROW)
 		self.panel.SetSizer( self.sizer )
 		self.panel.SetAutoLayout( True )
+		self.OnAccount()
 		self.BuildListCtrl()
 
 	def OnAccount( self, event = None):
@@ -71,6 +76,9 @@ class MainFrame( wx.Frame ):
 		os.environ['AWS_ACCESS_KEY_ID'] = s3accounts.accounts[account_name][0]
 		os.environ['AWS_SECRET_ACCESS_KEY'] = s3accounts.accounts[account_name][1]
 		self.connection = con.S3Connection()
+		self.account_name = account_name
+		self.label.SetLabel( "S3 account : {0}".format( self.account_name ))
+
 
 	def OnScreenshot(self, event):
 		wx.MessageBox(u"You got 5 seconds to go!", "Warning" )
@@ -80,6 +88,16 @@ class MainFrame( wx.Frame ):
 			sfile = sfile.replace(x , "")
     		sfile = "{0}.png".format(sfile)
 		Screenshot(filename = sfile)
+		image2 = wx.Image(sfile, wx.BITMAP_TYPE_ANY)
+			
+		width = image2.GetWidth()
+		width_factor = float(width) / float(IMAGE_WIDTH)
+				
+		height = image2.GetHeight()
+				
+		image3 = image2.Scale(IMAGE_WIDTH, int(height/width_factor))
+		self.staticbitmap.SetBitmap(wx.BitmapFromImage(image3))
+		self.Refresh()
 		key = self.bucket.new_key( sfile )
 		f = open( sfile, "rb")
 		key.set_contents_from_file( f, policy = "public-read" )
@@ -92,6 +110,7 @@ class MainFrame( wx.Frame ):
 			wx.TheClipboard.Close()
 			clip_msg = " and {0} is in clipboard".format( url )
 		wx.MessageBox(u"{0} file is in bucket {1} {2}".format(sfile,self.bucket_name, clip_msg ), "Upload status" )
+		self.OnListFiles()
 
 
 	def BuildListCtrl(self):
@@ -137,8 +156,9 @@ class MainFrame( wx.Frame ):
 	def OnAcl( self, event):
 		pass
 
-	def OnListFiles(self, event):
+	def OnListFiles(self, event = None):
 		self.BuildListCtrl()
+		self.label.SetLabel(u"S3 account : {2} -- Bucket {0} contains {1} file(s)".format(self.bucket_name,len(self.bucket.get_all_keys()),self.account_name ) )
 
 
 	def OnSetBucket( self, event):
@@ -161,7 +181,7 @@ class MainFrame( wx.Frame ):
 				if num_of_files > 1000:
 					wx.MessageBox(u"There are {0}.  Therefore I am going to include just 1000 in the list".format(num_of_files))
 					self.restrict_number = False
-				wx.MessageBox(u"Bucket {0} contains {1} file(s)".format(self.bucket_name,len(self.bucket.get_all_keys())) )
+				self.label.SetLabel(u"S3 account : {2} -- Bucket {0} contains {1} file(s)".format(self.bucket_name,len(self.bucket.get_all_keys()),self.account_name ) )
 				self.BuildListCtrl()
 	
 if __name__ == "__main__":
