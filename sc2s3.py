@@ -82,9 +82,16 @@ class MainFrame( wx.Frame ):
 		Screenshot(filename = sfile)
 		key = self.bucket.new_key( sfile )
 		f = open( sfile, "rb")
-		key.set_contents_from_file( f )
+		key.set_contents_from_file( f, policy = "public-read" )
 		f.close()
-		wx.MessageBox(u"{0} file is in bucket {1}".format(sfile,self.bucket_name), "Warning" )
+		url = "http://s3.amazonaws.com/{0}/{1}".format(self.bucket_name, sfile)
+		txt = wx.TextDataObject( url )
+		clip_msg = ""
+		if wx.TheClipboard.Open():
+			wx.TheClipboard.SetData( txt )
+			wx.TheClipboard.Close()
+			clip_msg = " and {0} is in clipboard".format( url )
+		wx.MessageBox(u"{0} file is in bucket {1} {2}".format(sfile,self.bucket_name, clip_msg ), "Upload status" )
 
 
 	def BuildListCtrl(self):
