@@ -1,6 +1,5 @@
 import wx
-import boto.s3.connection as con
-import os
+from boto import connect_s3
 import sys
 import wx.html as html
 import s3accounts
@@ -77,9 +76,7 @@ class MainFrame( wx.Frame ):
 			account_name = s3accounts.accounts.keys()[0]
 		else:	
 			account_name  = self.accounts[event.GetId()]
-		os.environ['AWS_ACCESS_KEY_ID'] = s3accounts.accounts[account_name][0]
-		os.environ['AWS_SECRET_ACCESS_KEY'] = s3accounts.accounts[account_name][1]
-		self.connection = con.S3Connection()
+		self.connection = connect_s3( *s3accounts.accounts[account_name])
 		self.account_name = account_name
 		self.label.SetLabel( "S3 account : {0}".format( self.account_name ))
 
