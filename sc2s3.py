@@ -7,7 +7,6 @@ import time
 from datetime import datetime
 IMAGE_WIDTH = 100
 
-
 class Screenshot(object):
 	def __init__(self, filename = "snap.png"):
 		self.filename = filename
@@ -44,7 +43,7 @@ class MainFrame( wx.Frame ):
 		bucket = wx.Menu()
 		self.Bind(wx.EVT_MENU, self.OnSetBucket, bucket.Append(-1, "Set Bucket"))
 		self.Bind(wx.EVT_MENU, self.OnListFiles, bucket.Append(-1, "List Files"))
-		self.Bind(wx.EVT_MENU, self.OnAcl, bucket.Append(-1, "Acl"))
+		#self.Bind(wx.EVT_MENU, self.OnAcl, bucket.Append(-1, "Acl"))
 		screenshot = wx.Menu()
 		self.Bind(wx.EVT_MENU, self.OnScreenshot, screenshot.Append( -1, u"Do it!"))
 		wx.EVT_CLOSE(self, lambda _: self.Destroy() )
@@ -52,6 +51,10 @@ class MainFrame( wx.Frame ):
 		mb.Append( bucket, "Bucket" )
 		mb.Append( screenshot, "Screenshot")
 		self.SetMenuBar( mb )
+
+		self.popupmenu = wx.Menu()
+		self.Bind(wx.EVT_MENU, self.OnCopyUrl, self.popupmenu.Append( -1 , "Copy Url to Clibpboard"))
+		self.Bind(wx.EVT_MENU, self.OnAddToList, self.popupmenu.Append( -1 , "Add to List"))
 		self.panel = wx.Panel(self, -1)
 		self.sizer = wx.FlexGridSizer(4,1,1,1)
 		self.label = wx.StaticText(self.panel, -1, "...", wx.DefaultPosition, wx.DefaultSize, 0)
@@ -62,6 +65,8 @@ class MainFrame( wx.Frame ):
 		self.sizer.Add( self.label, 1, wx.GROW)
 		self.list = wx.ListCtrl(self.panel, -1, style = wx.LC_REPORT)
 		self.sizer.Add( self.list, 1, wx.GROW)
+		self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnLCtrl,  self.list)
+		self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick,  self.list)
 		self.staticbitmap = wx.StaticBitmap(self.panel,-1,wx.EmptyBitmap( 100,100))
 		self.sizer.Add( self.staticbitmap, 1, wx.GROW)
 		self.html = HtmlWindowViewer( self.panel, -1)
@@ -71,6 +76,20 @@ class MainFrame( wx.Frame ):
 		self.OnAccount()
 		self.BuildListCtrl()
 
+	def OnCopyUrl(self, event):
+		txt = wx.TextDataObject( self.selected_file )
+		if wx.TheClipboard.Open():
+			wx.TheClipboard.SetData( txt )
+			wx.TheClipboard.Close()
+
+	def OnAddToList( self, event ):
+		try:
+			self.filelist.append( self.selected_file )
+			self.filelist = list(set( self.filelist ))
+		except:
+			self.filelist = [ self.selected_file ]
+		print self.filelist
+
 	def OnAccount( self, event = None):
 		if event is None:
 			account_name = s3accounts.accounts.keys()[0]
@@ -79,7 +98,6 @@ class MainFrame( wx.Frame ):
 		self.connection = connect_s3( *s3accounts.accounts[account_name])
 		self.account_name = account_name
 		self.label.SetLabel( "S3 account : {0}".format( self.account_name ))
-
 
 	def OnScreenshot(self, event):
 		wx.MessageBox(u"You got 5 seconds to go!", "Warning" )
@@ -112,7 +130,6 @@ class MainFrame( wx.Frame ):
 			clip_msg = " and {0} is in clipboard".format( url )
 		wx.MessageBox(u"{0} file is in bucket {1} {2}".format(sfile,self.bucket_name, clip_msg ), "Upload status" )
 		self.OnListFiles()
-
 
 	def BuildListCtrl(self):
 		try:
@@ -151,6 +168,12 @@ class MainFrame( wx.Frame ):
 			pass
 		return
 
+	def OnLCtrl( self, event ):
+		self.selected_file = self.list.GetItem( event.m_itemIndex,1).GetText()
+
+	def OnRightClick( self, event ):
+		self.PopupMenu( self.popupmenu )
+
 	def OnExit( self, event):
 		self.Close()
 
@@ -160,7 +183,6 @@ class MainFrame( wx.Frame ):
 	def OnListFiles(self, event = None):
 		self.BuildListCtrl()
 		self.label.SetLabel(u"S3 account : {2} -- Bucket {0} contains {1} file(s)".format(self.bucket_name,len(self.bucket.get_all_keys()),self.account_name ) )
-
 
 	def OnSetBucket( self, event):
 		try:
