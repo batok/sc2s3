@@ -5,7 +5,7 @@ import wx.html as html
 import s3accounts
 import time
 from datetime import datetime
-IMAGE_WIDTH = 100
+IMAGE_WIDTH = 200
 
 class Screenshot(object):
 	def __init__(self, filename = "snap.png"):
@@ -77,7 +77,8 @@ class MainFrame( wx.Frame ):
 		self.BuildListCtrl()
 
 	def OnCopyUrl(self, event):
-		txt = wx.TextDataObject( self.selected_file )
+		url = "http://s3.amazonaws.com/{0}/{1}".format(self.bucket_name, self.selected_file)
+		txt = wx.TextDataObject( url )
 		if wx.TheClipboard.Open():
 			wx.TheClipboard.SetData( txt )
 			wx.TheClipboard.Close()
@@ -105,6 +106,8 @@ class MainFrame( wx.Frame ):
 		sfile = "screenshot{0}".format(datetime.now())
 		for x in " .-:":
 			sfile = sfile.replace(x , "")
+
+    		sfile_thumbnail = "{0}_thumbnail.jpg".format(sfile)
     		sfile = "{0}.png".format(sfile)
 		Screenshot(filename = sfile)
 		image2 = wx.Image(sfile, wx.BITMAP_TYPE_ANY)
@@ -115,12 +118,20 @@ class MainFrame( wx.Frame ):
 		height = image2.GetHeight()
 				
 		image3 = image2.Scale(IMAGE_WIDTH, int(height/width_factor))
-		self.staticbitmap.SetBitmap(wx.BitmapFromImage(image3))
+		bmp = wx.BitmapFromImage(image3) 
+		self.staticbitmap.SetBitmap(bmp)
 		self.Refresh()
 		key = self.bucket.new_key( sfile )
 		f = open( sfile, "rb")
 		key.set_contents_from_file( f, policy = "public-read" )
 		f.close()
+		
+		bmp.SaveFile("screenshot_thumbnail.jpg", wx.BITMAP_TYPE_JPEG )
+		key2 = self.bucket.new_key( sfile_thumbnail )
+		f = open( "screenshot_thumbnail.jpg", "rb")
+		key2.set_contents_from_file( f, policy = "public-read" )
+		f.close()
+		
 		url = "http://s3.amazonaws.com/{0}/{1}".format(self.bucket_name, sfile)
 		txt = wx.TextDataObject( url )
 		clip_msg = ""
