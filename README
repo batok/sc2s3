@@ -1,16 +1,21 @@
 A wxpython program to store screenshots in Amazon Web Services S3
 
+Description:
+
+A multiplatform desktop program to take screenshots and upload them to Amazon's S3.
+-------------------------------------------------------------------------------
+
 You need to add s3accounts.py in the same directory as the script.
 
 s3accounts.py only needs a line like this.
 
 accounts = dict ( whateveryoucallanaccount = ["amazon public string", "amazon private string"]
-
+------------------------------------------------------------------------------
 Requirements
 
 Python 2.6 or + ( availabe at http://www.python.org ) 
 wxPython ( wxwidgets module for python ) : version 2.8.9.1 or + ( available at http://www.wxpython.org )
-boto ( python module to deal with s3 , available at http://code.google.com/p/boto)
+boto ( python module to deal with s3 , available at http://code.google.com/p/boto )
 
 How to run
 
