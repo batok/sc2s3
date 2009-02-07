@@ -19,7 +19,7 @@ python sc2s3py
 
 
 License:  Apache
-Author: Domingo Aguilera ( aka batok ) domingo.aguilera@gmail.com
+Author: Domingo Aguilera ( @batok in twitter ) domingo.aguilera@gmail.com
 
 TODO: Asynchronous upload to s3
 
