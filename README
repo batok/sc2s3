@@ -10,7 +10,12 @@ Requirements
 
 Python 2.6 or +
 wxPython ( wxwidgets module for python ) : 2.8.9.1 or +
-boto ( python module to manipulate s3 )
+boto ( python module to deal with s3 )
+
+How to run
+
+Like any other python program
+python sc2s3py
 
 
 License:  Apache
