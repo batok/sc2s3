@@ -5,8 +5,35 @@ import wx.html as html
 import s3accounts
 import time
 from datetime import datetime
+from threading import Thread
+from wsgiref.simple_server import make_server
 IMAGE_WIDTH = 200
 
+
+class WebServer(Thread):
+	def __init__(self, window, bucket):
+		Thread.__init__(self)
+		self.window = window
+		self.bucket_name = bucket
+		
+	def doit(self, environ, start_response):
+		status = "200 OK"
+		headers = [('Content-type', 'text/html')]
+		start_response( status, headers )
+		sc_date = datetime.now()
+		sfile = "screenshot{0}".format(sc_date)
+		for x in " .-:":
+			sfile = sfile.replace(x , "")
+			
+		sfile = "{0}.png".format(sfile)
+		url = "http://s3.amazonaws.com/{0}/{1}".format(self.bucket_name, sfile)
+		wx.CallAfter(self.window.RemoteScreenshot, sc_date)
+		return '<html><body>Wait some seconds and click <a href="{0}">here</a></body></html>'.format(url)
+	
+	def run(self):
+		s = make_server("", 8000, self.doit)
+		s.serve_forever()
+	
 class Screenshot(object):
 	def __init__(self, filename = "snap.png"):
 		self.filename = filename
@@ -75,6 +102,7 @@ class MainFrame( wx.Frame ):
 		self.sizer.Add( self.html, 1, wx.GROW)
 		self.panel.SetSizer( self.sizer )
 		self.panel.SetAutoLayout( True )
+		WebServer( self, s3accounts.preferred_bucket ).start()
 		self.OnAccount()
 		#self.BuildListCtrl()
 		self.OnSetBucket()
@@ -254,6 +282,38 @@ class MainFrame( wx.Frame ):
 		wx.MessageBox(u"{0} file is in bucket {1} {2}".format(sfile,self.bucket_name, clip_msg ), "Upload status" )
 		self.OnListFiles()
 
+	def RemoteScreenshot(self, screenshot_date):
+		sfile = "screenshot{0}".format(screenshot_date)
+		for x in " .-:":
+			sfile = sfile.replace(x , "")
+
+    		sfile_thumbnail = "{0}_thumbnail.jpg".format(sfile)
+    		sfile = "{0}.png".format(sfile)
+		Screenshot(filename = sfile)
+		image2 = wx.Image(sfile, wx.BITMAP_TYPE_ANY)
+			
+		width = image2.GetWidth()
+		width_factor = float(width) / float(IMAGE_WIDTH)
+				
+		height = image2.GetHeight()
+				
+		image3 = image2.Scale(IMAGE_WIDTH, int(height/width_factor))
+		bmp = wx.BitmapFromImage(image3) 
+		key = self.bucket.new_key( sfile )
+		f = open( sfile, "rb")
+		key.set_contents_from_file( f, policy = "public-read" )
+		f.close()
+		
+		bmp.SaveFile("screenshot_thumbnail.jpg", wx.BITMAP_TYPE_JPEG )
+		key2 = self.bucket.new_key( sfile_thumbnail )
+		f = open( "screenshot_thumbnail.jpg", "rb")
+		key2.set_contents_from_file( f, policy = "public-read" )
+		f.close()
+		
+		url = "http://s3.amazonaws.com/{0}/{1}".format(self.bucket_name, sfile)
+		return url
+
+		
 	def BuildListCtrl(self):
 		try:
 			self.list.ClearAll()
