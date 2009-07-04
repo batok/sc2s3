@@ -20,6 +20,9 @@ class WebServer(Thread):
 		status = "200 OK"
 		headers = [('Content-type', 'text/html')]
 		start_response( status, headers )
+		action = environ.get("PATH_INFO","").split("/")[-1]
+		if action != "click":
+			return "<html><body>Boo!</body></html>"
 		sc_date = datetime.now()
 		sfile = "screenshot{0}".format(sc_date)
 		for x in " .-:":
@@ -102,7 +105,14 @@ class MainFrame( wx.Frame ):
 		self.sizer.Add( self.html, 1, wx.GROW)
 		self.panel.SetSizer( self.sizer )
 		self.panel.SetAutoLayout( True )
-		WebServer( self, s3accounts.preferred_bucket ).start()
+		wsgi_server_running = True
+		try:
+			
+			WebServer( self, s3accounts.preferred_bucket ).start()
+		except:
+			wsgi_server_running = False
+		if wsgi_server_running:
+			wx.MessageBox("Web server running at port 8000")
 		self.OnAccount()
 		#self.BuildListCtrl()
 		self.OnSetBucket()
