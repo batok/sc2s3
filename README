@@ -10,12 +10,29 @@ You need to add s3accounts.py in the same directory as the script.
 s3accounts.py only needs a line like this.
 
 accounts = dict ( whateveryoucallanaccount = ["amazon public string", "amazon private string"]
+
+This program can also run a wsgi web server at port 8000.
+To make this happen you only need to add a second line to yoour s3accounts.py
+
+preferred_bucket = "thenameofabucketofyours"
+
+The purpose of the web server is to allow taking a snapshot from another computer ( or
+the same computer with the url http://localhost:8000/click )
+
+Also you can take a screenshot series.  By doing this, the program will generate also 
+an html page and will upload it to s3 besides all screenshot. 
+
+Every time a screnshot is taken , sc2s3 will also upload a thumbnail of the screenshot.
+
+I've found this program useful to share screenshots with others in chat systems and
+social networks.
+
 ------------------------------------------------------------------------------
 Requirements
 
-Python 2.6 or + ( availabe at http://www.python.org ) 
+Python 2.6.x ( availabe at http://www.python.org ) 
 wxPython ( wxwidgets module for python ) : version 2.8.9.1 or + ( available at http://www.wxpython.org )
-boto ( python module to deal with s3 , available at http://code.google.com/p/boto )
+boto ( python module to deal with s3 , available at http://code.google.com/p/boto.  Also you can easy_install it. )
 
 How to run
 
@@ -27,5 +44,5 @@ python sc2s3.py
 License:  Apache
 Author: Domingo Aguilera ( @batok in twitter ) domingo.aguilera@gmail.com
 
-TODO: Asynchronous upload to s3
+TODO: Asynchronous upload to s3, create buckets.
 

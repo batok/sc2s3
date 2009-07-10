@@ -36,6 +36,8 @@ class WebServer(Thread):
 	def run(self):
 		s = make_server("", 8000, self.doit)
 		s.serve_forever()
+		
+	
 	
 class Screenshot(object):
 	def __init__(self, filename = "snap.png"):
@@ -73,11 +75,12 @@ class MainFrame( wx.Frame ):
 		bucket = wx.Menu()
 		self.Bind(wx.EVT_MENU, self.OnSetBucket, bucket.Append(-1, "Set Bucket"))
 		self.Bind(wx.EVT_MENU, self.OnListFiles, bucket.Append(-1, "List Files"))
-		#self.Bind(wx.EVT_MENU, self.OnAcl, bucket.Append(-1, "Acl"))
+		
 		screenshot = wx.Menu()
 		self.Bind(wx.EVT_MENU, self.OnScreenshot, screenshot.Append( -1, u"Do it!"))
 		self.Bind(wx.EVT_MENU, self.OnScreenshotSeries, screenshot.Append( -1, u"Do series"))
-		wx.EVT_CLOSE(self, lambda _: self.Destroy() )
+		#wx.EVT_CLOSE(self, lambda _: self.Destroy() )
+		self.Bind(wx.EVT_CLOSE, self.OnClose)
 		mb.Append( accounts_menu, "Accounts")
 		mb.Append( bucket, "Bucket" )
 		mb.Append( screenshot, "Screenshot")
@@ -95,10 +98,10 @@ class MainFrame( wx.Frame ):
 		self.sizer.AddGrowableRow(2,3)
 		self.sizer.AddGrowableRow(3,5)
 		self.sizer.Add( self.label, 1, wx.GROW)
-		self.list = wx.ListCtrl(self.panel, -1, style = wx.LC_REPORT)
-		self.sizer.Add( self.list, 1, wx.GROW)
-		self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnLCtrl,  self.list)
-		self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick,  self.list)
+		self.listctrl = wx.ListCtrl(self.panel, -1, style = wx.LC_REPORT)
+		self.sizer.Add( self.listctrl, 1, wx.GROW)
+		self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnLCtrl,  self.listctrl)
+		self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick,  self.listctrl)
 		self.staticbitmap = wx.StaticBitmap(self.panel,-1,wx.EmptyBitmap( 100,100))
 		self.sizer.Add( self.staticbitmap, 1, wx.GROW)
 		self.html = HtmlWindowViewer( self.panel, -1)
@@ -106,9 +109,11 @@ class MainFrame( wx.Frame ):
 		self.panel.SetSizer( self.sizer )
 		self.panel.SetAutoLayout( True )
 		wsgi_server_running = True
+		self.webserver = None
 		try:
 			
-			WebServer( self, s3accounts.preferred_bucket ).start()
+			self.webserver = WebServer( self, s3accounts.preferred_bucket )
+			self.webserver.start()
 		except:
 			wsgi_server_running = False
 		if wsgi_server_running:
@@ -117,6 +122,10 @@ class MainFrame( wx.Frame ):
 		#self.BuildListCtrl()
 		self.OnSetBucket()
 
+	def OnClose(self, event):
+		
+		self.Destroy()
+		
 	def OnCopyUrl(self, event):
 		url = "http://s3.amazonaws.com/{0}/{1}".format(self.bucket_name, self.selected_file)
 		txt = wx.TextDataObject( url )
@@ -127,7 +136,7 @@ class MainFrame( wx.Frame ):
 	def OnAddToList( self, event ):
 		try:
 			self.filelist.append( self.selected_file )
-			self.filelist = list(set( self.filelist ))
+			self.filelist = listctrl(set( self.filelist ))
 		except:
 			self.filelist = [ self.selected_file ]
 		print self.filelist
@@ -326,7 +335,7 @@ class MainFrame( wx.Frame ):
 		
 	def BuildListCtrl(self):
 		try:
-			self.list.ClearAll()
+			self.listctrl.ClearAll()
 		except:
 			pass
 
@@ -335,7 +344,7 @@ class MainFrame( wx.Frame ):
 
 		title = "#,File,Size,Last Modified"
 		for i, colTitle in enumerate(title.split(",")):
-			self.list.InsertColumn(i, colTitle)
+			self.listctrl.InsertColumn(i, colTitle)
 
 		try:
 			for x, key in enumerate(self.bucket.get_all_keys()):
@@ -345,24 +354,24 @@ class MainFrame( wx.Frame ):
 				except:
 					pass
 
-				i = self.list.InsertStringItem(sys.maxint, "%06d" % x)
+				i = self.listctrl.InsertStringItem(sys.maxint, "%06d" % x)
 				bgcolor = bg1
 				if i % 2 == 0:
 					bgcolor = bg2
 
-				self.list.SetItemBackgroundColour( i, bgcolor)
-				self.list.SetStringItem( i, 1, key.name)
-				self.list.SetStringItem( i, 2, "{0}".format(key.size))
-				self.list.SetStringItem( i, 3, key.last_modified)
+				self.listctrl.SetItemBackgroundColour( i, bgcolor)
+				self.listctrl.SetStringItem( i, 1, key.name)
+				self.listctrl.SetStringItem( i, 2, "{0}".format(key.size))
+				self.listctrl.SetStringItem( i, 3, key.last_modified)
 			for i in range(4):
-				self.list.SetColumnWidth(i, wx.LIST_AUTOSIZE)
+				self.listctrl.SetColumnWidth(i, wx.LIST_AUTOSIZE)
 			self.Refresh()
 		except:
 			pass
 		return
 
 	def OnLCtrl( self, event ):
-		self.selected_file = self.list.GetItem( event.m_itemIndex,1).GetText()
+		self.selected_file = self.listctrl.GetItem( event.m_itemIndex,1).GetText()
 
 	def OnRightClick( self, event ):
 		self.PopupMenu( self.popupmenu )
