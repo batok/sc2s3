@@ -15,6 +15,7 @@ class WebServer(Thread):
 		Thread.__init__(self)
 		self.window = window
 		self.bucket_name = bucket
+		self.setDaemon(1)
 		
 	def doit(self, environ, start_response):
 		status = "200 OK"
@@ -35,9 +36,12 @@ class WebServer(Thread):
 	
 	def run(self):
 		s = make_server("", 8000, self.doit)
+		self.server = s
 		s.serve_forever()
 		
-	
+	def stop(self):
+		self.server.shutdown()
+		self.join()
 	
 class Screenshot(object):
 	def __init__(self, filename = "snap.png"):
@@ -123,6 +127,10 @@ class MainFrame( wx.Frame ):
 		self.OnSetBucket()
 
 	def OnClose(self, event):
+		try:
+			self.webserver.stop()
+		except:
+			pass
 		
 		self.Destroy()
 		
