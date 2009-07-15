@@ -7,13 +7,21 @@ import time
 from datetime import datetime
 from threading import Thread
 from wsgiref.simple_server import make_server
+import cStringIO as  StringIO
+try:
+	from PIL import Image,ImageFilter
+except:
+	pass
+import urllib
+import json
 IMAGE_WIDTH = 200
 
 
 class WebServer(Thread):
-	def __init__(self, window, bucket):
+	def __init__(self, window, port, bucket):
 		Thread.__init__(self)
 		self.window = window
+		self.port = port
 		self.bucket_name = bucket
 		self.setDaemon(1)
 		
@@ -35,7 +43,7 @@ class WebServer(Thread):
 		return '<html><body>Wait some seconds and click <a href="{0}">here</a></body></html>'.format(url)
 	
 	def run(self):
-		s = make_server("", 8000, self.doit)
+		s = make_server("", self.port, self.doit)
 		self.server = s
 		s.serve_forever()
 		
@@ -94,6 +102,12 @@ class MainFrame( wx.Frame ):
 		self.Bind(wx.EVT_MENU, self.OnCopyUrl, self.popupmenu.Append( -1 , "Copy Url to Clibpboard"))
 		self.Bind(wx.EVT_MENU, self.OnAddToList, self.popupmenu.Append( -1 , "Add to List"))
 		self.Bind(wx.EVT_MENU, self.OnMakePage, self.popupmenu.Append( -1, "Make a Page with List"))
+		try:
+			s3accounts.bitly_login
+			self.Bind(wx.EVT_MENU, self.OnShorten, self.popupmenu.Append( -1, "Shorten and Copy Url to Clipboard"))
+		except:
+			pass
+		
 		self.panel = wx.Panel(self, -1)
 		self.sizer = wx.FlexGridSizer(4,1,1,1)
 		self.label = wx.StaticText(self.panel, -1, "...", wx.DefaultPosition, wx.DefaultSize, 0)
@@ -115,9 +129,16 @@ class MainFrame( wx.Frame ):
 		wsgi_server_running = True
 		self.webserver = None
 		try:
-			
-			self.webserver = WebServer( self, s3accounts.preferred_bucket )
-			self.webserver.start()
+			pb = s3accounts.preferred_bucket
+			dlg = wx.MessageDialog(self, "Do you want to run a webserver to control this application with a browser?", "Webserver", style = wx.YES_NO)
+			retCode = dlg.ShowModal()
+			if retCode == wx.ID_YES:
+				port = wx.GetNumberFromUser("Port to run the webserver", "Port", "Webserver", value = 8000, min = 8000, max = 8100 )
+				self.webserver = WebServer( self, port, pb )
+				self.webserver.start()
+			else:
+				wsgi_server_running = False
+			dlg.Destroy()
 		except:
 			wsgi_server_running = False
 		if wsgi_server_running:
@@ -134,6 +155,20 @@ class MainFrame( wx.Frame ):
 		
 		self.Destroy()
 		
+	def OnShorten(self, event):
+		l_url = "http://s3.amazonaws.com/{0}/{1}".format(self.bucket_name, self.selected_file)
+		try:
+			value = urllib.urlopen("http://api.bit.ly/shorten?version=2.0.1&longUrl=%s&login=%s&apiKey=%s" % ( l_url, s3accounts.bitly_login, s3accounts.bitly_apikey)).read()
+			d = json.loads(value)
+			bitly_url = str( d.get("results").get(l_url).get("shortUrl"))
+			txt = wx.TextDataObject( bitly_url )
+			if wx.TheClipboard.Open():
+				wx.TheClipboard.SetData( txt )
+				wx.TheClipboard.Close()
+		except:
+			pass
+		return
+	
 	def OnCopyUrl(self, event):
 		url = "http://s3.amazonaws.com/{0}/{1}".format(self.bucket_name, self.selected_file)
 		txt = wx.TextDataObject( url )
@@ -275,8 +310,24 @@ class MainFrame( wx.Frame ):
 			sfile = sfile.replace(x , "")
 
     		sfile_thumbnail = "{0}_thumbnail.jpg".format(sfile)
+		sfile_jpg = "{0}.jpg".format(sfile)
     		sfile = "{0}.png".format(sfile)
+		
 		Screenshot(filename = sfile)
+		try:
+			Image
+			with open(sfile, "rb") as f1:
+				f_jpg = StringIO.StringIO()
+				im = Image.open(f1)
+				im.filter(ImageFilter.CONTOUR)
+				im.save(f_jpg, "JPEG")
+				key_jpeg = self.bucket.new_key( sfile_jpg )
+				headers = {"Content-Type" : "image/jpeg"}
+				key_jpeg.set_contents_from_file( f_jpg, headers = headers, policy = "public-read" )
+				
+		except:
+			pass
+				
 		image2 = wx.Image(sfile, wx.BITMAP_TYPE_ANY)
 			
 		width = image2.GetWidth()

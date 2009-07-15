@@ -20,12 +20,21 @@ The purpose of the web server is to allow taking a snapshot from another compute
 the same computer with the url http://localhost:8000/click )
 
 Also you can take a screenshot series.  By doing this, the program will generate also 
-an html page and will upload it to s3 besides all screenshot. 
+an html page and will upload it to s3 besides all screenshots. 
 
 Every time a screnshot is taken , sc2s3 will also upload a thumbnail of the screenshot.
 
+If PIL ( Image Library is detected ) will generate also a jpg file that will upload to s3.
+
+By selecting and right clicking on a row in the list of uploaded files you will get additional options.
+One of these additional options is to shorten the amazon url with bit.ly .  To do that you need an account in bit.ly
+and you need also to add two more lines to s3accounts.py :
+
+bitly_login = "yourloginnameonbitly"
+bitly_apikey = "yourapikey"
+
 I've found this program useful to share screenshots with others in chat systems and
-social networks.
+social networks. The wsgi ( web server option let you fire a screnshot from another computer using a simple browser ).
 
 ------------------------------------------------------------------------------
 Requirements
@@ -33,16 +42,24 @@ Requirements
 Python 2.6.x ( availabe at http://www.python.org ) 
 wxPython ( wxwidgets module for python ) : version 2.8.9.1 or + ( available at http://www.wxpython.org )
 boto ( python module to deal with s3 , available at http://code.google.com/p/boto.  Also you can easy_install it. )
+If you have PIL ( Image Library ) it will be used to generate a screenshot in jpeg format besides png default.
 
 How to run
 
 Like any other python program
-python sc2s3.py
+python sc2s3.py  ( depending on the platform may be pythonw sc2s3.py ).
 "Don't forget to create s3accounts.py as stated above"
 
+---------------------------------------------------------------------------------------
+This python program has been tested in:
+Windows XP
+Windows Vista
+Mac OS X ( Panther, Tiger and Leopard )
+Fedora 11
 
+---------------------------------------------------------------------------------------
 License:  Apache
 Author: Domingo Aguilera ( @batok in twitter ) domingo.aguilera@gmail.com
 
-TODO: Asynchronous upload to s3, create buckets.
+TODO: Asynchronous upload to s3, create buckets, post url of screenshot and short comment to twitter.
 
