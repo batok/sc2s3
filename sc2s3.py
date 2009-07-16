@@ -225,7 +225,11 @@ class MainFrame( wx.Frame ):
 
 	def OnAccount( self, event = None):
 		if event is None:
-			account_name = s3accounts.accounts.keys()[0]
+			try:
+				account_name = s3accounts.preferred_account
+			except:
+				account_name = s3accounts.accounts.keys()[0]
+			
 		else:	
 			account_name  = self.accounts[event.GetId()]
 		self.connection = connect_s3( *s3accounts.accounts[account_name])
@@ -452,7 +456,10 @@ class MainFrame( wx.Frame ):
 			self.bucket_name = ""
 			
 		if event is None:
-			self.bucket_name = s3accounts.preferred_bucket
+			try:
+				self.bucket_name = s3accounts.preferred_bucket
+			except:
+				pass
 		try:
 			buckets = [x.name for x in self.connection.get_all_buckets()]
 		except:

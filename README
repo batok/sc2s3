@@ -16,6 +16,9 @@ To make this happen you only need to add a second line to yoour s3accounts.py
 
 preferred_bucket = "thenameofabucketofyours"
 
+If you want to manage more than one s3 account use following to set an account as default
+preferred_account = "whateveryoucallanaccountthatsgoingtobedefault"
+
 The purpose of the web server is to allow taking a snapshot from another computer ( or
 the same computer with the url http://localhost:8000/click )
 
