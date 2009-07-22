@@ -1,4 +1,4 @@
-A program to store screenshots in Amazon Web Services S3
+A program to take and store screenshots in Amazon Web Services S3
 
 Description:
 
@@ -27,7 +27,7 @@ an html page and will upload it to s3 besides all screenshots.
 
 Every time a screenshot is done , sc2s3 will also upload a thumbnail of the screenshot.
 
-If PIL ( Image Library is detected ) will generate also a jpg file that will upload to s3.
+If PIL ( Pyrhon Image Library ) is detected, will generate also a jpg file that will upload to s3.
 
 By selecting and right clicking on a row in the list of uploaded files you will get additional options.
 One of these additional options is to shorten the amazon url with bit.ly .  To do that you need an account in bit.ly
@@ -36,13 +36,14 @@ and you need also to add two more lines to s3accounts.py :
 bitly_login = "yourloginnameonbitly"
 bitly_apikey = "yourapikey"
 
-Now you have menu and context optios to upload any file you want in private or public-read mode.
+Now you have menu and context options to upload any file you want in private or public-read mode.
 
-If you are in Mac OS X and have the Growl module installed ( it is included in the bindings python section of grow SDK ) 
-sc2s3 will notify to grow when the screenshot is uploaded to s3 instead of the normal modal message box.
+If you are in Mac OS X and have the Growl module installed ( it is included in the bindings python section of growl SDK ) 
+sc2s3 will notify to growl when the screenshot is uploaded to s3 instead of the normal modal message box.
 
 I've found this program useful to share screenshots with others in chat systems and
-social networks. The wsgi ( web server option let you fire a screnshot from another computer using a simple browser ).
+social networks. The wsgi ( python's idea of modern web server ) option let you fire a screenshot from another computer
+using a simple browser  or language or commands like curl and wget.
 
 ------------------------------------------------------------------------------
 Requirements
@@ -62,6 +63,7 @@ python sc2s3.py  ( depending on the platform may be pythonw sc2s3.py ).
 This python program has been tested in:
 Windows XP
 Windows Vista
+Windows 7
 Mac OS X ( Panther, Tiger and Leopard )
 Fedora 11
 

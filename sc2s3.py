@@ -89,7 +89,13 @@ class MainFrame( wx.Frame ):
 		for x in s3accounts.accounts.keys():
 			id = wx.NewId()
 			self.accounts[id] = x
-			self.Bind( wx.EVT_MENU, self.OnAccount, accounts_menu.AppendRadioItem( id, x ) )
+			mitem = accounts_menu.AppendRadioItem( id, x)
+			try:
+				if x == s3accounts.preferred_account:
+					mitem.Check(True)
+			except:
+				pass
+			self.Bind( wx.EVT_MENU, self.OnAccount, mitem )
 		
 		bucket = wx.Menu()
 		self.Bind(wx.EVT_MENU, self.OnSetBucket, bucket.Append(-1, "Set Bucket"))
