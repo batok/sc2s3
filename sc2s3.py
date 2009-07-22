@@ -12,8 +12,15 @@ try:
 	from PIL import Image,ImageFilter
 except:
 	pass
+
+try:
+	import Growl
+except:
+	pass
+
 import urllib
 import json
+import os
 IMAGE_WIDTH = 200
 
 
@@ -93,21 +100,32 @@ class MainFrame( wx.Frame ):
 		self.Bind(wx.EVT_MENU, self.OnScreenshotSeries, screenshot.Append( -1, u"Do series"))
 		#wx.EVT_CLOSE(self, lambda _: self.Destroy() )
 		self.Bind(wx.EVT_CLOSE, self.OnClose)
+		
+		upload = wx.Menu()
+		self.Bind( wx.EVT_MENU, self.OnUploadAFile, upload.Append(-1, "Upload a File in Private Mode"))
+		self.Bind( wx.EVT_MENU, self.OnUploadAFileInPublicMode, upload.Append(-1, "Upload a File in Public Mode"))
 		mb.Append( accounts_menu, "Accounts")
 		mb.Append( bucket, "Bucket" )
 		mb.Append( screenshot, "Screenshot")
+		mb.Append( upload, "Upload")
 		self.SetMenuBar( mb )
 
 		self.popupmenu = wx.Menu()
 		self.Bind(wx.EVT_MENU, self.OnCopyUrl, self.popupmenu.Append( -1 , "Copy Url to Clibpboard"))
 		self.Bind(wx.EVT_MENU, self.OnAddToList, self.popupmenu.Append( -1 , "Add to List"))
 		self.Bind(wx.EVT_MENU, self.OnMakePage, self.popupmenu.Append( -1, "Make a Page with List"))
+
 		try:
 			s3accounts.bitly_login
 			self.Bind(wx.EVT_MENU, self.OnShorten, self.popupmenu.Append( -1, "Shorten and Copy Url to Clipboard"))
+
 		except:
+
 			pass
 		
+		self.Bind(wx.EVT_MENU, self.OnUploadAFile, self.popupmenu.Append( -1, "Upload a File in Private Mode"))
+		self.Bind(wx.EVT_MENU, self.OnUploadAFileInPublicMode, self.popupmenu.Append( -1, "Upload a File in Public Mode"))
+			
 		self.panel = wx.Panel(self, -1)
 		self.sizer = wx.FlexGridSizer(4,1,1,1)
 		self.label = wx.StaticText(self.panel, -1, "...", wx.DefaultPosition, wx.DefaultSize, 0)
@@ -142,7 +160,13 @@ class MainFrame( wx.Frame ):
 		except:
 			wsgi_server_running = False
 		if wsgi_server_running:
-			wx.MessageBox("Web server running at port 8000")
+			wx.MessageBox("Web server running at port {0}".format(port))
+		try:
+			self.growl_notifier = Growl.GrowlNotifier("sc2s3",["upload"])
+			self.growl_notifier.register()
+		except:
+			self.growl_notifier = None
+			
 		self.OnAccount()
 		#self.BuildListCtrl()
 		self.OnSetBucket()
@@ -154,6 +178,39 @@ class MainFrame( wx.Frame ):
 			pass
 		
 		self.Destroy()
+		
+	def OnUploadAFileInPublicMode(self,event):
+		self.upload_mode = "public-read"
+		self.OnUploadAFile(None)
+		return
+		
+	def OnUploadAFile( self, event = None ):
+		try:
+			self.upload_mode
+		except:
+			self.upload_mode = "private"
+		file_uploaded = False	
+		dlg = wx.FileDialog( self, "Select File to upload to s3 in {0} mode".format(self.upload_mode), os.getcwd(), style = wx.OPEN, wildcard = "*.*")
+		if dlg.ShowModal() == wx.ID_OK:
+			"""
+			upload routine
+			"""
+			file_path = dlg.GetPath()
+			file_name = dlg.GetFilename()
+			with open(file_path, "rb") as f1:
+				key = self.bucket.new_key( file_name )
+				#headers = {"Content-Type" : "image/jpeg"}
+				key.set_contents_from_file( f1,  policy = self.upload_mode)
+				file_uploaded = True
+				try:
+					self.growl_notifier.notify("upload", file_name,"Uploaded",sticky = True)
+				except:
+			
+					pass
+		
+		dlg.Destroy()
+		if file_uploaded:
+			self.OnListFiles()
 		
 	def OnShorten(self, event):
 		l_url = "http://s3.amazonaws.com/{0}/{1}".format(self.bucket_name, self.selected_file)
@@ -361,7 +418,12 @@ class MainFrame( wx.Frame ):
 			wx.TheClipboard.SetData( txt )
 			wx.TheClipboard.Close()
 			clip_msg = " and {0} is in clipboard".format( url )
-		wx.MessageBox(u"{0} file is in bucket {1} {2}".format(sfile,self.bucket_name, clip_msg ), "Upload status" )
+		msg , title = u"{0} file is in bucket {1} {2}".format(sfile,self.bucket_name, clip_msg ), "Upload status"
+		try:
+			self.growl_notifier.notify("upload", msg,title,sticky = True)
+		except:
+			
+			wx.MessageBox(msg,title )
 		self.OnListFiles()
 
 	def RemoteScreenshot(self, screenshot_date):

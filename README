@@ -1,8 +1,8 @@
-A wxpython program to store screenshots in Amazon Web Services S3
+A program to store screenshots in Amazon Web Services S3
 
 Description:
 
-A multiplatform desktop program to take screenshots and upload them to Amazon's S3.
+A multiplatform desktop (GUI) program to take screenshots and upload them to Amazon's S3.
 -------------------------------------------------------------------------------
 
 You need to add s3accounts.py in the same directory as the script.
@@ -25,7 +25,7 @@ the same computer with the url http://localhost:8000/click )
 Also you can take a screenshot series.  By doing this, the program will generate also 
 an html page and will upload it to s3 besides all screenshots. 
 
-Every time a screnshot is taken , sc2s3 will also upload a thumbnail of the screenshot.
+Every time a screenshot is done , sc2s3 will also upload a thumbnail of the screenshot.
 
 If PIL ( Image Library is detected ) will generate also a jpg file that will upload to s3.
 
@@ -35,6 +35,11 @@ and you need also to add two more lines to s3accounts.py :
 
 bitly_login = "yourloginnameonbitly"
 bitly_apikey = "yourapikey"
+
+Now you have menu and context optios to upload any file you want in private or public-read mode.
+
+If you are in Mac OS X and have the Growl module installed ( it is included in the bindings python section of grow SDK ) 
+sc2s3 will notify to grow when the screenshot is uploaded to s3 instead of the normal modal message box.
 
 I've found this program useful to share screenshots with others in chat systems and
 social networks. The wsgi ( web server option let you fire a screnshot from another computer using a simple browser ).
