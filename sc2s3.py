@@ -128,8 +128,10 @@ class MainFrame( wx.Frame ):
 			
 		self.panel = wx.Panel(self, -1)
 		self.sizer = wx.FlexGridSizer(4,1,1,1)
-		self.label = wx.StaticText(self.panel, -1, "...", wx.DefaultPosition, wx.DefaultSize, 0)
+		self.label = wx.StaticText(self.panel, -1, "...", wx.DefaultPosition, wx.DefaultSize, style = wx.ALIGN_CENTER)
 		self.label.SetMinSize( (800,20))
+		
+		self.label.SetBackgroundColour( wx.NamedColour("white"))
 		self.sizer.AddGrowableRow(1,5)
 		self.sizer.AddGrowableRow(2,3)
 		self.sizer.AddGrowableRow(3,5)
@@ -142,6 +144,7 @@ class MainFrame( wx.Frame ):
 		self.sizer.Add( self.staticbitmap, 1, wx.GROW)
 		self.html = HtmlWindowViewer( self.panel, -1)
 		self.sizer.Add( self.html, 1, wx.GROW)
+		self.panel.SetBackgroundColour( wx.NamedColour( "black"))
 		self.panel.SetSizer( self.sizer )
 		self.panel.SetAutoLayout( True )
 		wsgi_server_running = True
@@ -222,6 +225,10 @@ class MainFrame( wx.Frame ):
 			if wx.TheClipboard.Open():
 				wx.TheClipboard.SetData( txt )
 				wx.TheClipboard.Close()
+				try:
+					self.growl_notifier.notify("upload", "Shorten by bitly %s and copied to clipboard" % bitly_url, "Shorten URL by bit.ly")
+				except:
+					pass
 		except:
 			pass
 		return
