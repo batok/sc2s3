@@ -372,8 +372,15 @@ class MainFrame( wx.Frame ):
 			wx.TheClipboard.SetData( txt )
 			wx.TheClipboard.Close()
 			clip_msg = " and {0} is in clipboard".format( url )
-		wx.MessageBox(u"{0} file is in bucket {1} {2}".format(page_name,self.bucket_name, clip_msg ), "Upload status" )
-		self.OnListFiles()
+			msg = u"{0} file is in bucket {1} {2}".format(page_name,self.bucket_name, clip_msg )
+			title = "Upload Status"
+			try:
+				self.growl_notifier.notify("upload", msg,title,sticky = True)
+			except:
+				
+				wx.MessageBox(msg,title )
+			
+			self.OnListFiles()
 			
 			
 	def OnScreenshot(self, event):
@@ -431,13 +438,13 @@ class MainFrame( wx.Frame ):
 			wx.TheClipboard.SetData( txt )
 			wx.TheClipboard.Close()
 			clip_msg = " and {0} is in clipboard".format( url )
-		msg , title = u"{0} file is in bucket {1} {2}".format(sfile,self.bucket_name, clip_msg ), "Upload status"
-		try:
-			self.growl_notifier.notify("upload", msg,title,sticky = True)
-		except:
-			
-			wx.MessageBox(msg,title )
-		self.OnListFiles()
+			msg , title = u"{0} file is in bucket {1} {2}".format(sfile,self.bucket_name, clip_msg ), "Upload status"
+			try:
+				self.growl_notifier.notify("upload", msg,title,sticky = True)
+			except:
+				
+				wx.MessageBox(msg,title )
+			self.OnListFiles()
 
 	def RemoteScreenshot(self, screenshot_date):
 		sfile = "screenshot{0}".format(screenshot_date)
@@ -466,6 +473,10 @@ class MainFrame( wx.Frame ):
 		f = open( "screenshot_thumbnail.jpg", "rb")
 		key2.set_contents_from_file( f, policy = "public-read" )
 		f.close()
+		try:
+			self.growl_notifier.notify("upload",sfile,"uploaded",sticky = True)
+		except:
+			pass
 		
 		url = "http://s3.amazonaws.com/{0}/{1}".format(self.bucket_name, sfile)
 		return url
