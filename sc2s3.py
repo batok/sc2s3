@@ -191,7 +191,7 @@ class MainFrame( wx.Frame ):
 		self.Destroy()
 		
 	def OnDeleteFile(self, event):
-		if  wx.MessageBox("Do you really want to delete {0}".format(self.selected_file), "Delete File", wx.YES_NO):
+		if  wx.MessageBox("Do you really want to delete {0}".format(self.selected_file), "Delete File", wx.YES_NO) == wx.YES:
 			self.bucket.delete_key( self.selected_file )
 			self.OnListFiles()
 		return
