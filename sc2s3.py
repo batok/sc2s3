@@ -131,6 +131,8 @@ class MainFrame( wx.Frame ):
 		
 		self.Bind(wx.EVT_MENU, self.OnUploadAFile, self.popupmenu.Append( -1, "Upload a File in Private Mode"))
 		self.Bind(wx.EVT_MENU, self.OnUploadAFileInPublicMode, self.popupmenu.Append( -1, "Upload a File in Public Mode"))
+		self.Bind(wx.EVT_MENU, self.OnDeleteFile, self.popupmenu.Append( -1, "Delete this file"))
+
 			
 		self.panel = wx.Panel(self, -1)
 		self.sizer = wx.FlexGridSizer(4,1,1,1)
@@ -187,6 +189,12 @@ class MainFrame( wx.Frame ):
 			pass
 		
 		self.Destroy()
+		
+	def OnDeleteFile(self, event):
+		if  wx.MessageBox("Do you really want to delete {0}".format(self.selected_file), "Delete File", wx.YES_NO):
+			self.bucket.delete_key( self.selected_file )
+			self.OnListFiles()
+		return
 		
 	def OnUploadAFileInPublicMode(self,event):
 		self.upload_mode = "public-read"
@@ -502,8 +510,8 @@ class MainFrame( wx.Frame ):
 						return
 				except:
 					pass
-
-				i = self.listctrl.InsertStringItem(sys.maxint, "%06d" % x)
+				row = x + 1
+				i = self.listctrl.InsertStringItem(sys.maxint, "%06d" % row )
 				bgcolor = bg1
 				if i % 2 == 0:
 					bgcolor = bg2
