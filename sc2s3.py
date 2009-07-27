@@ -8,6 +8,8 @@ from datetime import datetime
 from threading import Thread
 from wsgiref.simple_server import make_server
 import cStringIO as  StringIO
+import cPickle
+import rsa
 try:
 	from PIL import Image,ImageFilter
 except:
@@ -22,7 +24,8 @@ import urllib
 import json
 import os
 IMAGE_WIDTH = 200
-
+PUBLIC_KEY_FILE_NAME = "public.key"
+PRIVATE_KEY_FILE_NAME = "private.key"
 
 class WebServer(Thread):
 	def __init__(self, window, port, bucket):
@@ -47,7 +50,7 @@ class WebServer(Thread):
 		sfile = "{0}.png".format(sfile)
 		url = "http://s3.amazonaws.com/{0}/{1}".format(self.bucket_name, sfile)
 		wx.CallAfter(self.window.RemoteScreenshot, sc_date)
-		return '<html><body>Wait some seconds and click <a href="{0}">here</a></body></html>'.format(url)
+		return '<html><body>Wait some time ( about 60 seconds ) while screenshot is uploaded to s3 then click <a href="{0}">here</a></body></html>'.format(url)
 	
 	def run(self):
 		s = make_server("", self.port, self.doit)
@@ -104,16 +107,21 @@ class MainFrame( wx.Frame ):
 		screenshot = wx.Menu()
 		self.Bind(wx.EVT_MENU, self.OnScreenshot, screenshot.Append( -1, u"Do it!"))
 		self.Bind(wx.EVT_MENU, self.OnScreenshotSeries, screenshot.Append( -1, u"Do series"))
-		#wx.EVT_CLOSE(self, lambda _: self.Destroy() )
 		self.Bind(wx.EVT_CLOSE, self.OnClose)
 		
 		upload = wx.Menu()
 		self.Bind( wx.EVT_MENU, self.OnUploadAFile, upload.Append(-1, "Upload a File in Private Mode"))
 		self.Bind( wx.EVT_MENU, self.OnUploadAFileInPublicMode, upload.Append(-1, "Upload a File in Public Mode"))
+		crypt_menu = wx.Menu()
+		self.Bind( wx.EVT_MENU, self.OnGenerateKeys, crypt_menu.Append(-1, "Generate RSA public and private keys"))
+		self.Bind( wx.EVT_MENU, self.OnEncryptFile, crypt_menu.Append(-1,"Encrypt file using public key"))
+		self.Bind( wx.EVT_MENU, self.OnDecryptFile, crypt_menu.Append(-1,"Decrypt file using private key"))
+				
 		mb.Append( accounts_menu, "Accounts")
 		mb.Append( bucket, "Bucket" )
 		mb.Append( screenshot, "Screenshot")
 		mb.Append( upload, "Upload")
+		mb.Append( crypt_menu , "Crypt")
 		self.SetMenuBar( mb )
 
 		self.popupmenu = wx.Menu()
@@ -133,7 +141,6 @@ class MainFrame( wx.Frame ):
 		self.Bind(wx.EVT_MENU, self.OnUploadAFileInPublicMode, self.popupmenu.Append( -1, "Upload a File in Public Mode"))
 		self.Bind(wx.EVT_MENU, self.OnDeleteFile, self.popupmenu.Append( -1, "Delete this file"))
 
-			
 		self.panel = wx.Panel(self, -1)
 		self.sizer = wx.FlexGridSizer(4,1,1,1)
 		self.label = wx.StaticText(self.panel, -1, "...", wx.DefaultPosition, wx.DefaultSize, style = wx.ALIGN_CENTER)
@@ -189,7 +196,54 @@ class MainFrame( wx.Frame ):
 			pass
 		
 		self.Destroy()
+
+	def OnGenerateKeys( self, event ):
+		pub, priv = rsa.gen_pubpriv_keys(64)
+		with open( PUBLIC_KEY_FILE_NAME,"wb") as f:
+			cPickle.dump( pub, f )
+		with open( PRIVATE_KEY_FILE_NAME, "wb") as f:
+			cPickle.dump( priv, f )
+			
+		wx.MessageBox("The files {0} and {1}\n where generated".format(PUBLIC_KEY_FILE_NAME, PRIVATE_KEY_FILE_NAME), "FYI")
+			
+		return
+	
+	def OnEncryptFile( self, event ):
+		dlg = wx.FileDialog( self, "Select File to Encrypt with RSA", os.getcwd(), style = wx.OPEN, wildcard = "*.*")
+		if dlg.ShowModal() == wx.ID_OK:
+			
+			file_path = dlg.GetPath()
+			file_name = dlg.GetFilename()
+			with open(file_path, "rb") as f1:
+				contents = f1.read()
+				with open( PUBLIC_KEY_FILE_NAME, "rb") as f2:
+					public_key = cPickle.load( f2 )
+					wx.BeginBusyCursor()
+					encrypted_contents = rsa.encrypt( contents, public_key )
+					wx.EndBusyCursor()
+					with open( "{0}.encrypted".format( file_path ), "wb") as f3:
+						f3.write( encrypted_contents )
+		return
+	
+	def OnDecryptFile( self, event ):
+		dlg = wx.FileDialog( self, "Select File to Decrypt with RSA", os.getcwd(), style = wx.OPEN, wildcard = "*.encrypted")
+		if dlg.ShowModal() == wx.ID_OK:
+			
+			file_path = dlg.GetPath()
+			file_name = dlg.GetFilename()
+			with open(file_path, "rb") as f1:
+				contents = f1.read()
+				with open( PRIVATE_KEY_FILE_NAME, "rb") as f2:
+					private_key = cPickle.load( f2 ) 
+					wx.BeginBusyCursor()
+					decrypted_contents = rsa.decrypt( contents, private_key )
+					wx.EndBusyCursor()
+					file_path = file_path.replace( ".encrypted", "")
+					with open( "{0}".format( file_path ), "wb") as f3:
+						f3.write( decrypted_contents )
 		
+		return
+	
 	def OnDeleteFile(self, event):
 		if  wx.MessageBox("Do you really want to delete {0}".format(self.selected_file), "Delete File", wx.YES_NO) == wx.YES:
 			self.bucket.delete_key( self.selected_file )
