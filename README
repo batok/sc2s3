@@ -45,6 +45,9 @@ I've found this program useful to share screenshots with others in chat systems 
 social networks. The wsgi ( python's idea of modern web server ) option let you fire a screenshot from another computer
 using a simple browser  or language or commands like curl and wget.
 
+There's a rsa git branch of this project.  Includes three menu items to encrypt and decrypt files using rsa algorithm.
+You first have to create your public and private keys with the first menu item of the crypt menu.
+
 ------------------------------------------------------------------------------
 Requirements
 
@@ -52,6 +55,7 @@ Python 2.6.x ( availabe at http://www.python.org )
 wxPython ( wxwidgets module for python ) : version 2.8.9.1 or + ( available at http://www.wxpython.org )
 boto ( python module to deal with s3 , available at http://code.google.com/p/boto.  Also you can easy_install it. )
 If you have PIL ( Image Library ) it will be used to generate a screenshot in jpeg format besides png default.
+For rsa branch you need to do... easy_install rsa
 
 How to run
 

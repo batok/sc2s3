@@ -217,19 +217,29 @@ class MainFrame( wx.Frame ):
 			with open(file_path, "rb") as f1:
 				contents = f1.read().encode("base64")
 				with open( PUBLIC_KEY_FILE_NAME, "rb") as f2:
-					public_key = cPickle.load( f2 )
-					wx.BeginBusyCursor()
-					encrypted_contents = rsa.encrypt( contents, public_key )
-					wx.EndBusyCursor()
-					with open( "{0}.encrypted".format( file_path ), "wb") as f3:
-						f3.write( encrypted_contents )
-						msg , title = u"{0}.encrypted file was generated".format(file_path ), "Encryption status"
-						try:
-							self.growl_notifier.notify("crypt", msg,title,sticky = True)
-						except:
-				
-							wx.MessageBox(msg,title )
-			
+					
+					write_file = True
+					encrypted_file_path = "{0}.encrypted".format( file_path )
+					if os.path.isfile(encrypted_file_path):
+						if wx.MessageBox("File {0} already exists.\n Do you want to overwrite it ?".format(encrypted_file_path), "Attention", wx.YES_NO) == wx.YES:
+							pass
+						else:
+							write_file = False
+						
+						if write_file:
+							public_key = cPickle.load( f2 )
+							wx.BeginBusyCursor()
+							encrypted_contents = rsa.encrypt( contents, public_key )
+							wx.EndBusyCursor()
+							
+							with open( encrypted_file_path , "wb") as f3:
+								f3.write( encrypted_contents )
+								msg , title = u"{0}.encrypted file was generated".format(file_path ), "Encryption status"
+								try:
+									self.growl_notifier.notify("crypt", msg,title,sticky = True)
+								except:
+									wx.MessageBox(msg,title )
+					
 		return
 	
 	def OnDecryptFile( self, event ):
@@ -241,20 +251,29 @@ class MainFrame( wx.Frame ):
 			with open(file_path, "rb") as f1:
 				contents = f1.read()
 				with open( PRIVATE_KEY_FILE_NAME, "rb") as f2:
-					private_key = cPickle.load( f2 ) 
-					wx.BeginBusyCursor()
-					decrypted_contents = rsa.decrypt( contents, private_key ).decode("base64")
-					wx.EndBusyCursor()
-					file_path = file_path.replace( ".encrypted", "")
-					with open( "{0}".format( file_path ), "wb") as f3:
-						f3.write( decrypted_contents )
-						msg , title = u"{0} file decrypted".format(file_path ), "Decryption status"
-						try:
-							self.growl_notifier.notify("crypt", msg,title,sticky = True)
-						except:
-				
-							wx.MessageBox(msg,title )
-			
+					
+					write_file = True
+					if os.path.isfile( file_path ):
+						if wx.MessageBox("File {0} already exists.\n Do you want to overwrite it ?".format(file_path), "Attention", wx.YES_NO) == wx.YES:
+							pass
+						else:
+							write_file = False
+						
+						if write_file:
+							private_key = cPickle.load( f2 ) 
+							wx.BeginBusyCursor()
+							decrypted_contents = rsa.decrypt( contents, private_key ).decode("base64")
+							wx.EndBusyCursor()
+							file_path = file_path.replace( ".encrypted", "")
+							with open( "{0}".format( file_path ), "wb") as f3:
+								f3.write( decrypted_contents )
+								msg , title = u"{0} file decrypted".format(file_path ), "Decryption status"
+								try:
+									self.growl_notifier.notify("crypt", msg,title,sticky = True)
+								except:
+						
+									wx.MessageBox(msg,title )
+					
 		
 		return
 	
