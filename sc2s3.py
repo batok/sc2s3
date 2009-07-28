@@ -581,7 +581,7 @@ class MainFrame( wx.Frame ):
 			pass
 
 		bg1 = wx.Colour( 239, 235, 239 )
-		bg2 = wx.Colour( 255, 207, 99 )
+		bg2 = wx.Colour( 229, 195, 135 )
 
 		title = "#,File,Size,Last Modified"
 		for i, colTitle in enumerate(title.split(",")):
