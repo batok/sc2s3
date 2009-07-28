@@ -209,9 +209,7 @@ class MainFrame( wx.Frame ):
 		file_uploaded = False	
 		dlg = wx.FileDialog( self, "Select File to upload to s3 in {0} mode".format(self.upload_mode), os.getcwd(), style = wx.OPEN, wildcard = "*.*")
 		if dlg.ShowModal() == wx.ID_OK:
-			"""
-			upload routine
-			"""
+			
 			file_path = dlg.GetPath()
 			file_name = dlg.GetFilename()
 			with open(file_path, "rb") as f1:
@@ -497,7 +495,8 @@ class MainFrame( wx.Frame ):
 			pass
 
 		bg1 = wx.Colour( 239, 235, 239 )
-		bg2 = wx.Colour( 255, 207, 99 )
+		bg2 = wx.Colour( 229, 195, 135 )
+		
 
 		title = "#,File,Size,Last Modified"
 		for i, colTitle in enumerate(title.split(",")):
