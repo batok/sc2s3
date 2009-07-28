@@ -226,19 +226,19 @@ class MainFrame( wx.Frame ):
 						else:
 							write_file = False
 						
-						if write_file:
-							public_key = cPickle.load( f2 )
-							wx.BeginBusyCursor()
-							encrypted_contents = rsa.encrypt( contents, public_key )
-							wx.EndBusyCursor()
-							
-							with open( encrypted_file_path , "wb") as f3:
-								f3.write( encrypted_contents )
-								msg , title = u"{0}.encrypted file was generated".format(file_path ), "Encryption status"
-								try:
-									self.growl_notifier.notify("crypt", msg,title,sticky = True)
-								except:
-									wx.MessageBox(msg,title )
+					if write_file:
+						public_key = cPickle.load( f2 )
+						wx.BeginBusyCursor()
+						encrypted_contents = rsa.encrypt( contents, public_key )
+						wx.EndBusyCursor()
+						
+						with open( encrypted_file_path , "wb") as f3:
+							f3.write( encrypted_contents )
+							msg , title = u"{0}.encrypted file was generated".format(file_path ), "Encryption status"
+							try:
+								self.growl_notifier.notify("crypt", msg,title,sticky = True)
+							except:
+								wx.MessageBox(msg,title )
 					
 		return
 	
@@ -259,20 +259,20 @@ class MainFrame( wx.Frame ):
 						else:
 							write_file = False
 						
-						if write_file:
-							private_key = cPickle.load( f2 ) 
-							wx.BeginBusyCursor()
-							decrypted_contents = rsa.decrypt( contents, private_key ).decode("base64")
-							wx.EndBusyCursor()
-							file_path = file_path.replace( ".encrypted", "")
-							with open( "{0}".format( file_path ), "wb") as f3:
-								f3.write( decrypted_contents )
-								msg , title = u"{0} file decrypted".format(file_path ), "Decryption status"
-								try:
-									self.growl_notifier.notify("crypt", msg,title,sticky = True)
-								except:
-						
-									wx.MessageBox(msg,title )
+					if write_file:
+						private_key = cPickle.load( f2 ) 
+						wx.BeginBusyCursor()
+						decrypted_contents = rsa.decrypt( contents, private_key ).decode("base64")
+						wx.EndBusyCursor()
+						file_path = file_path.replace( ".encrypted", "")
+						with open( "{0}".format( file_path ), "wb") as f3:
+							f3.write( decrypted_contents )
+							msg , title = u"{0} file decrypted".format(file_path ), "Decryption status"
+							try:
+								self.growl_notifier.notify("crypt", msg,title,sticky = True)
+							except:
+					
+								wx.MessageBox(msg,title )
 					
 		
 		return
