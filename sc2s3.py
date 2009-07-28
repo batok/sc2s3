@@ -180,7 +180,7 @@ class MainFrame( wx.Frame ):
 		if wsgi_server_running:
 			wx.MessageBox("Web server running at port {0}".format(port))
 		try:
-			self.growl_notifier = Growl.GrowlNotifier("sc2s3",["upload"])
+			self.growl_notifier = Growl.GrowlNotifier("sc2s3",["upload", "crypt"])
 			self.growl_notifier.register()
 		except:
 			self.growl_notifier = None
@@ -215,7 +215,7 @@ class MainFrame( wx.Frame ):
 			file_path = dlg.GetPath()
 			file_name = dlg.GetFilename()
 			with open(file_path, "rb") as f1:
-				contents = f1.read()
+				contents = f1.read().encode("base64")
 				with open( PUBLIC_KEY_FILE_NAME, "rb") as f2:
 					public_key = cPickle.load( f2 )
 					wx.BeginBusyCursor()
@@ -223,6 +223,13 @@ class MainFrame( wx.Frame ):
 					wx.EndBusyCursor()
 					with open( "{0}.encrypted".format( file_path ), "wb") as f3:
 						f3.write( encrypted_contents )
+						msg , title = u"{0}.encrypted file was generated".format(file_path ), "Encryption status"
+						try:
+							self.growl_notifier.notify("crypt", msg,title,sticky = True)
+						except:
+				
+							wx.MessageBox(msg,title )
+			
 		return
 	
 	def OnDecryptFile( self, event ):
@@ -236,11 +243,18 @@ class MainFrame( wx.Frame ):
 				with open( PRIVATE_KEY_FILE_NAME, "rb") as f2:
 					private_key = cPickle.load( f2 ) 
 					wx.BeginBusyCursor()
-					decrypted_contents = rsa.decrypt( contents, private_key )
+					decrypted_contents = rsa.decrypt( contents, private_key ).decode("base64")
 					wx.EndBusyCursor()
 					file_path = file_path.replace( ".encrypted", "")
 					with open( "{0}".format( file_path ), "wb") as f3:
 						f3.write( decrypted_contents )
+						msg , title = u"{0} file decrypted".format(file_path ), "Decryption status"
+						try:
+							self.growl_notifier.notify("crypt", msg,title,sticky = True)
+						except:
+				
+							wx.MessageBox(msg,title )
+			
 		
 		return
 	
@@ -263,9 +277,7 @@ class MainFrame( wx.Frame ):
 		file_uploaded = False	
 		dlg = wx.FileDialog( self, "Select File to upload to s3 in {0} mode".format(self.upload_mode), os.getcwd(), style = wx.OPEN, wildcard = "*.*")
 		if dlg.ShowModal() == wx.ID_OK:
-			"""
-			upload routine
-			"""
+			
 			file_path = dlg.GetPath()
 			file_name = dlg.GetFilename()
 			with open(file_path, "rb") as f1:
@@ -276,7 +288,6 @@ class MainFrame( wx.Frame ):
 				try:
 					self.growl_notifier.notify("upload", file_name,"Uploaded",sticky = True)
 				except:
-			
 					pass
 		
 		dlg.Destroy()
