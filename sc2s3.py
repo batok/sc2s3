@@ -23,7 +23,41 @@ import json
 import os
 IMAGE_WIDTH = 200
 
+class UploadThread( Thread ):
+	def __init__(self, window, bitmap, bucket, notifier,png_image, thumbnail):
+		Thread.__init__(self)
+		self.window = window
+		self.bitmap = bitmap
+		self.bucket = bucket
+		self.growl_notifier = notifier
+		self.png_image = png_image
+		self.thumbnail = thumbnail
 
+	def run(self):
+		key = self.bucket.new_key( self.png_image )
+		with  open( self.png_image, "rb") as f:
+			key.set_contents_from_file( f, policy = "public-read" )
+		key = self.bucket.new_key( self.thumbnail )
+		with open( self.thumbnail, "rb") as f:
+			key.set_contents_from_file( f, policy = "public-read" )
+		msg = "{0} \n {1} ".format( self.png_image, self.thumbnail )
+		title = "Uploaded"
+		
+		try:
+			self.growl_notifier.notify("upload", msg,title,sticky = True)
+		except:
+			pass	
+		try:
+			os.remove(  self.png_image)
+			os.remove( self.thumbnail )
+		except:
+			pass
+		
+		wx.CallAfter(self.window.OnListFiles )
+		
+		wx.CallAfter(self.window.staticbitmap.SetBitmap, self.bitmap )
+		return
+	
 class WebServer(Thread):
 	def __init__(self, window, port, bucket):
 		Thread.__init__(self)
@@ -104,6 +138,7 @@ class MainFrame( wx.Frame ):
 		screenshot = wx.Menu()
 		self.Bind(wx.EVT_MENU, self.OnScreenshot, screenshot.Append( -1, u"Do it!"))
 		self.Bind(wx.EVT_MENU, self.OnScreenshotSeries, screenshot.Append( -1, u"Do series"))
+		self.Bind(wx.EVT_MENU, self.OnAsyncUpload, screenshot.Append(-1,u"Async Upload"))
 		#wx.EVT_CLOSE(self, lambda _: self.Destroy() )
 		self.Bind(wx.EVT_CLOSE, self.OnClose)
 		
@@ -388,7 +423,27 @@ class MainFrame( wx.Frame ):
 			
 			self.OnListFiles()
 			
-			
+	def OnAsyncUpload(self, event):
+		delay = wx.GetNumberFromUser("Seconds to go", "Start delay", "Time", value = 3, min = 3, max = 10)
+		time.sleep(delay)
+		sfile = "screenshot{0}".format(datetime.now())
+		for x in " .-:":
+			sfile = sfile.replace(x , "")
+
+    		sfile_thumbnail = "{0}_thumbnail.jpg".format(sfile)
+		sfile = "{0}.png".format(sfile)
+		Screenshot(filename = sfile)
+				
+		image2 = wx.Image(sfile, wx.BITMAP_TYPE_ANY)
+		width = image2.GetWidth()
+		width_factor = float(width) / float(IMAGE_WIDTH)
+		height = image2.GetHeight()
+		image3 = image2.Scale(IMAGE_WIDTH, int(height/width_factor))
+		bmp = wx.BitmapFromImage(image3) 
+		bmp.SaveFile(sfile_thumbnail, wx.BITMAP_TYPE_JPEG )
+		UploadThread(self, bmp, self.bucket, self.growl_notifier, sfile, sfile_thumbnail).start()
+		return
+	
 	def OnScreenshot(self, event):
 		wx.MessageBox(u"You got 5 seconds to go!", "Warning" )
 		time.sleep( 5 )

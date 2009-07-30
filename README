@@ -38,6 +38,8 @@ bitly_apikey = "yourapikey"
 
 Now you have menu and context options to upload any file you want in private or public-read mode.
 
+You have a menu option to take a timed screenshot and upload it to s3 asynchronously also.
+
 If you are in Mac OS X and have the Growl module installed ( it is included in the bindings python section of growl SDK ) 
 sc2s3 will notify to growl when the screenshot is uploaded to s3 instead of the normal modal message box.
 
@@ -71,5 +73,5 @@ Fedora 11
 License:  Apache
 Author: Domingo Aguilera ( @batok in twitter ) domingo.aguilera@gmail.com
 
-TODO: Asynchronous upload to s3, create buckets, post url of screenshot and short comment to twitter.
+TODO: Create buckets, post url of screenshot and short comment to twitter.
 
