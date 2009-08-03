@@ -80,7 +80,8 @@ class WebServer(Thread):
 			
 		sfile = "{0}.png".format(sfile)
 		url = "http://s3.amazonaws.com/{0}/{1}".format(self.bucket_name, sfile)
-		wx.CallAfter(self.window.RemoteScreenshot, sc_date)
+		wx.CallAfter(self.window.OnAsyncUpload, None, sc_date)
+
 		return '<html><body>Wait some seconds and click <a href="{0}">here</a></body></html>'.format(url)
 	
 	def run(self):
@@ -139,7 +140,6 @@ class MainFrame( wx.Frame ):
 		self.Bind(wx.EVT_MENU, self.OnScreenshot, screenshot.Append( -1, u"Do it!"))
 		self.Bind(wx.EVT_MENU, self.OnScreenshotSeries, screenshot.Append( -1, u"Do series"))
 		self.Bind(wx.EVT_MENU, self.OnAsyncUpload, screenshot.Append(-1,u"Async Upload"))
-		#wx.EVT_CLOSE(self, lambda _: self.Destroy() )
 		self.Bind(wx.EVT_CLOSE, self.OnClose)
 		
 		upload = wx.Menu()
@@ -158,17 +158,15 @@ class MainFrame( wx.Frame ):
 
 		try:
 			s3accounts.bitly_login
-			self.Bind(wx.EVT_MENU, self.OnShorten, self.popupmenu.Append( -1, "Shorten and Copy Url to Clipboard"))
-
+			self.Bind(wx.EVT_MENU, self.OnShorten, self.popupmenu.Append( -1, "Shorten Selected File's URL and Copy to Clipboard"))
+			self.Bind(wx.EVT_MENU, self.OnShortenAny, self.popupmenu.Append( -1, "Shorten Typed URL and Copy to Clipboard"))
 		except:
-
 			pass
 		
 		self.Bind(wx.EVT_MENU, self.OnUploadAFile, self.popupmenu.Append( -1, "Upload a File in Private Mode"))
 		self.Bind(wx.EVT_MENU, self.OnUploadAFileInPublicMode, self.popupmenu.Append( -1, "Upload a File in Public Mode"))
 		self.Bind(wx.EVT_MENU, self.OnDeleteFile, self.popupmenu.Append( -1, "Delete this file"))
 
-			
 		self.panel = wx.Panel(self, -1)
 		self.sizer = wx.FlexGridSizer(4,1,1,1)
 		self.label = wx.StaticText(self.panel, -1, "...", wx.DefaultPosition, wx.DefaultSize, style = wx.ALIGN_CENTER)
@@ -214,7 +212,6 @@ class MainFrame( wx.Frame ):
 			self.growl_notifier = None
 			
 		self.OnAccount()
-		#self.BuildListCtrl()
 		self.OnSetBucket()
 
 	def OnClose(self, event):
@@ -261,9 +258,18 @@ class MainFrame( wx.Frame ):
 		dlg.Destroy()
 		if file_uploaded:
 			self.OnListFiles()
+			
+	def OnShortenAny(self,event):
+		self.bitly_url = wx.GetTextFromUser( message = "Type the url you want to get short by bit.ly",  caption = "Shorten a URL", default_value = "http://www.github.com/batok/sc2s3/tree/master")
+		if self.bitly_url:
+			self.OnShorten()
 		
-	def OnShorten(self, event):
-		l_url = "http://s3.amazonaws.com/{0}/{1}".format(self.bucket_name, self.selected_file)
+		
+	def OnShorten(self, event = None):
+		if event is None:
+			l_url = self.bitly_url
+		else:
+			l_url = "http://s3.amazonaws.com/{0}/{1}".format(self.bucket_name, self.selected_file)
 		try:
 			value = urllib.urlopen("http://api.bit.ly/shorten?version=2.0.1&longUrl=%s&login=%s&apiKey=%s" % ( l_url, s3accounts.bitly_login, s3accounts.bitly_apikey)).read()
 			d = json.loads(value)
@@ -423,10 +429,14 @@ class MainFrame( wx.Frame ):
 			
 			self.OnListFiles()
 			
-	def OnAsyncUpload(self, event):
-		delay = wx.GetNumberFromUser("Seconds to go", "Start delay", "Time", value = 3, min = 3, max = 10)
-		time.sleep(delay)
-		sfile = "screenshot{0}".format(datetime.now())
+	def OnAsyncUpload(self, event = None, sc_date = None):
+		if not event is None:
+			delay = wx.GetNumberFromUser("Seconds to go", "Start delay", "Time", value = 3, min = 3, max = 10)
+			if delay:
+				time.sleep(delay)
+		if  sc_date is None:
+			sc_date = datetime.now()
+		sfile = "screenshot{0}".format(sc_date)
 		for x in " .-:":
 			sfile = sfile.replace(x , "")
 
@@ -507,41 +517,7 @@ class MainFrame( wx.Frame ):
 				wx.MessageBox(msg,title )
 			self.OnListFiles()
 
-	def RemoteScreenshot(self, screenshot_date):
-		sfile = "screenshot{0}".format(screenshot_date)
-		for x in " .-:":
-			sfile = sfile.replace(x , "")
-
-    		sfile_thumbnail = "{0}_thumbnail.jpg".format(sfile)
-    		sfile = "{0}.png".format(sfile)
-		Screenshot(filename = sfile)
-		image2 = wx.Image(sfile, wx.BITMAP_TYPE_ANY)
-			
-		width = image2.GetWidth()
-		width_factor = float(width) / float(IMAGE_WIDTH)
-				
-		height = image2.GetHeight()
-				
-		image3 = image2.Scale(IMAGE_WIDTH, int(height/width_factor))
-		bmp = wx.BitmapFromImage(image3) 
-		key = self.bucket.new_key( sfile )
-		f = open( sfile, "rb")
-		key.set_contents_from_file( f, policy = "public-read" )
-		f.close()
-		
-		bmp.SaveFile("screenshot_thumbnail.jpg", wx.BITMAP_TYPE_JPEG )
-		key2 = self.bucket.new_key( sfile_thumbnail )
-		f = open( "screenshot_thumbnail.jpg", "rb")
-		key2.set_contents_from_file( f, policy = "public-read" )
-		f.close()
-		try:
-			self.growl_notifier.notify("upload",sfile,"uploaded",sticky = True)
-		except:
-			pass
-		
-		url = "http://s3.amazonaws.com/{0}/{1}".format(self.bucket_name, sfile)
-		return url
-
+	
 		
 	def BuildListCtrl(self):
 		try:
@@ -574,6 +550,7 @@ class MainFrame( wx.Frame ):
 				self.listctrl.SetStringItem( i, 1, key.name)
 				self.listctrl.SetStringItem( i, 2, "{0}".format(key.size))
 				self.listctrl.SetStringItem( i, 3, key.last_modified)
+				
 			for i in range(4):
 				self.listctrl.SetColumnWidth(i, wx.LIST_AUTOSIZE)
 			self.Refresh()
