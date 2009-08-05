@@ -567,9 +567,6 @@ class MainFrame( wx.Frame ):
 	def OnExit( self, event):
 		self.Close()
 
-	def OnAcl( self, event):
-		pass
-
 	def OnListFiles(self, event = None):
 		self.BuildListCtrl()
 		self.label.SetLabel(u"S3 account : {2} -- Bucket {0} contains {1} file(s)".format(self.bucket_name,len(self.bucket.get_all_keys()),self.account_name ) )
