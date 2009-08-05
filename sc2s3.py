@@ -111,13 +111,13 @@ class Screenshot(object):
 			self.filename = ""
 
 
-class HtmlWindowViewer(html.HtmlWindow):
-	def __init__(self, parent, id):
-		html.HtmlWindow.__init__( self, parent, id, style = wx.NO_FULL_REPAINT_ON_RESIZE)
+#class HtmlWindowViewer(html.HtmlWindow):
+	#def __init__(self, parent, id):
+		#html.HtmlWindow.__init__( self, parent, id, style = wx.NO_FULL_REPAINT_ON_RESIZE)
 
 class MainFrame( wx.Frame ):
 	def __init__(self):
-		wx.Frame.__init__(  self, None, -1, "Screenshot to s3", size = (800,600))
+		wx.Frame.__init__(  self, None, -1, "Screenshot to s3", size = (650,500))
 		mb = wx.MenuBar()
 		accounts_menu = wx.Menu()
 		self.accounts = dict()
@@ -170,12 +170,12 @@ class MainFrame( wx.Frame ):
 		self.panel = wx.Panel(self, -1)
 		self.sizer = wx.FlexGridSizer(4,1,1,1)
 		self.label = wx.StaticText(self.panel, -1, "...", wx.DefaultPosition, wx.DefaultSize, style = wx.ALIGN_CENTER)
-		self.label.SetMinSize( (800,20))
+		self.label.SetMinSize( (650,20))
 		
 		self.label.SetBackgroundColour( wx.NamedColour("white"))
 		self.sizer.AddGrowableRow(1,5)
 		self.sizer.AddGrowableRow(2,3)
-		self.sizer.AddGrowableRow(3,5)
+		#self.sizer.AddGrowableRow(3,5)
 		self.sizer.Add( self.label, 1, wx.GROW)
 		self.listctrl = wx.ListCtrl(self.panel, -1, style = wx.LC_REPORT)
 		self.sizer.Add( self.listctrl, 1, wx.GROW)
@@ -183,8 +183,8 @@ class MainFrame( wx.Frame ):
 		self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick,  self.listctrl)
 		self.staticbitmap = wx.StaticBitmap(self.panel,-1,wx.EmptyBitmap( 100,100))
 		self.sizer.Add( self.staticbitmap, 1, wx.GROW)
-		self.html = HtmlWindowViewer( self.panel, -1)
-		self.sizer.Add( self.html, 1, wx.GROW)
+		#self.html = HtmlWindowViewer( self.panel, -1)
+		#self.sizer.Add( self.html, 1, wx.GROW)
 		self.panel.SetBackgroundColour( wx.NamedColour( "black"))
 		self.panel.SetSizer( self.sizer )
 		self.panel.SetAutoLayout( True )
@@ -606,5 +606,6 @@ class MainFrame( wx.Frame ):
 if __name__ == "__main__":
 	app = wx.PySimpleApp()
 	f = MainFrame()
+	f.CenterOnScreen()
 	f.Show()
 	app.MainLoop()
