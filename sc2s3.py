@@ -16,6 +16,7 @@
 #limitations under the License.
 
 import wx
+from wx.lib.embeddedimage import PyEmbeddedImage
 from boto import connect_s3
 import sys
 import wx.html as html
@@ -39,6 +40,24 @@ import urllib
 import json
 import os
 IMAGE_WIDTH = 200
+
+Smiles = PyEmbeddedImage(
+    "iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAolJ"
+    "REFUOI1tk91Lk2EYxn/vx7OmwyBhVsytmY1cCBFBQWSRlYVGJ51EjajptliH4X/QQeJ5J+ZJ"
+    "f0AnIVSWJ0EQQfQhzNG3JkRQILrl3tft6sDNRvnAdfI8z8V939d13Vi2w79IpS4pHt8p17Vk"
+    "jK1EIqpcLqPN/to0nWwmrc5IUL29n3jw4Ajl8mVKpYvcv7+frq5HdEZqymauqZljWbYDwOlT"
+    "xxSL/eTOnfMY4wElYAWoAhXgI75fIJ/3mJ8/wvST5xaw3kE2k1YsBhMTtzEmCYTqxEaxVaCM"
+    "MRYTE1uIxZ6RzVxdf7Rsh2i0XZ5XkPRF0mONjo4KkJSSlBKgcDgsqVVSizwPRTuRZTu42Uxa"
+    "XV1rGNMCOECN8fHxpimX6OnpYW5uDmgF1TAEuXG9yuf5lOyZmYcMDUWAReAj8LqJXAEWWVhY"
+    "aLqrQaWVoZNtzMxMYRljq1S6iTFtwCrDw9+ZnPQ2hIOFuqB1crUKSx34qw6hXfMNG7264stM"
+    "TvrAEvAOKDaRBVpjd2cQ/BbwgwDY8XiEYvEb8AMokky+BF7UK+svGR+qNp+/L0O5jeKcRXxX"
+    "GLe//wxTU/fo7Q0AolCAUEiUGoWpAWtQtTi4rw19iUB5K1OPf9F//GTDRkue11K3ad0qBYMK"
+    "BAJyXUehoKv93e3S4l6p0Cfv1QlFdwS0EeXBwTT5/Op6mw389qn4Pr5jcTjZweunUVgOw1qA"
+    "/K0ig2fOsREky3YYGOjTyAjyPCTVUbWllW3St6T04ZC8N0c1cmGHBo4f0H/LNP3kueU4w3R3"
+    "w9gYzM6CX3HwKzaz71cYu/uV7rMvcLb2Mf3srbURi81WNJdLK5HYLuMi46LEng7lMlc2Xec/"
+    "xiMt8QU2mDwAAAAASUVORK5CYII=")
+
+
 
 class UploadThread( Thread ):
 	def __init__(self, window, bitmap, bucket, notifier,png_image, thumbnail):
@@ -191,6 +210,10 @@ class MainFrame( wx.Frame ):
 		self.sizer.AddGrowableRow(2,3)
 		self.sizer.Add( self.label, 1, wx.GROW)
 		self.listctrl = wx.ListCtrl(self.panel, -1, style = wx.LC_REPORT)
+		il = wx.ImageList(16,16,True)
+		il.Add(wx.ArtProvider.GetBitmap(wx.ART_NORMAL_FILE, wx.ART_OTHER, (16,16)))
+		il.Add( Smiles.GetBitmap())
+		self.listctrl.AssignImageList(il, wx.IMAGE_LIST_SMALL)
 		self.sizer.Add( self.listctrl, 1, wx.GROW)
 		self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnLCtrl,  self.listctrl)
 		self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick,  self.listctrl)
@@ -561,10 +584,15 @@ class MainFrame( wx.Frame ):
 
 				self.listctrl.SetItemBackgroundColour( i, bgcolor)
 				self.listctrl.SetStringItem( i, 1, key.name)
+				if "screenshot" in key.name:
+					if "thumbnail" in key.name:
+						self.listctrl.SetItemImage( i, 1, 1)
+					else:
+						self.listctrl.SetItemImage( i, 0, 0 )
 				self.listctrl.SetStringItem( i, 2, "{0}".format(key.size))
 				self.listctrl.SetStringItem( i, 3, key.last_modified)
-				
-			for i in range(4):
+			self.listctrl.SetColumnWidth(0,90)
+			for i in range(1,4):
 				self.listctrl.SetColumnWidth(i, wx.LIST_AUTOSIZE)
 			self.Refresh()
 		except:
