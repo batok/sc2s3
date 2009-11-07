@@ -89,6 +89,12 @@ class UploadThread( Thread ):
 		except:
 			pass
 		
+		try:
+			s3accounts.twitter_message
+			wx.CallAfter( self.window.ShortenAndTweet, self.png_image)
+		except:
+			pass
+		
 		wx.CallAfter(self.window.OnListFiles )
 		
 		wx.CallAfter(self.window.staticbitmap.SetBitmap, self.bitmap )
@@ -292,6 +298,17 @@ class MainFrame( wx.Frame ):
 		if file_uploaded:
 			self.OnListFiles()
 			
+	def ShortenAndTweet(self, filename):
+		self.bitly_url = "http://s3.amazonaws.com/{0}/{1}".format(self.bucket_name, filename)
+		self.OnShorten()
+		from twyt.twitter import Twitter
+		t = Twitter()
+		t.set_auth(s3accounts.twitter_user,s3accounts.twitter_password)
+		t.status_update("%s %s" % (s3accounts.twitter_message, self.bitly_shorten_url))
+		return
+		
+		
+	
 	def OnShortenAny(self,event):
 		self.bitly_url = wx.GetTextFromUser( message = "Type the url you want to get short by bit.ly",  caption = "Shorten a URL", default_value = "http://www.github.com/batok/sc2s3/tree/master")
 		if self.bitly_url:
@@ -307,6 +324,7 @@ class MainFrame( wx.Frame ):
 			value = urllib.urlopen("http://api.bit.ly/shorten?version=2.0.1&longUrl=%s&login=%s&apiKey=%s" % ( l_url, s3accounts.bitly_login, s3accounts.bitly_apikey)).read()
 			d = json.loads(value)
 			bitly_url = str( d.get("results").get(l_url).get("shortUrl"))
+			self.bitly_shorten_url = bitly_url
 			txt = wx.TextDataObject( bitly_url )
 			if wx.TheClipboard.Open():
 				wx.TheClipboard.SetData( txt )

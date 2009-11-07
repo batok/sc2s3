@@ -6,9 +6,9 @@ A multiplatform desktop (GUI) program to take screenshots and upload them to Ama
 -------------------------------------------------------------------------------
 First of all, you need an S3 account in Amazon Web Services.  If you don't know what S3 is, go to http://aws.amazon.com/s3/
 
-Second, create a bucket ( kind of directory or carpet ) in S3's therminology.  
+Second, create a bucket ( kind of filesystem directory  ) in S3's therminology.  
 
-You need to create s3accounts.py file in the same directory as the sc2s3.py script file.  You can use any text editor to do so.
+You need to create the s3accounts.py file in the same directory as the sc2s3.py script file.  You can use any text editor to do so.
 
 s3accounts.py only at least needs a line like this:
 
@@ -55,6 +55,20 @@ You'll have also an option to take a timed screenshot and upload it to s3 asynch
 If you are in Mac OS X and have the Growl module installed ( it is included in the bindings python section of growl SDK ) 
 sc2s3 will notify to growl when the screenshot is uploaded to s3 instead of the normal modal message box.
 
+Now you can tweet a message with enshorten by bit.ly link of your screenshot.  This function is available if:
+
+You have the following lines in s3accounts.py....
+
+twitter_user = "your twitter username"
+twitter_password = "your twitter password"
+twitter_message ="The text that precedes the link"  i.e. "Here is my screenshot"
+
+Also you need to download the python module twyt module from http://andrewprice.me.uk/projects/twyt/download/ 
+
+Choose the most up to date tar.gz file that you have to unpack and procede to do the normal python installation , the distutils way ( python setup.py install )
+
+The tweet feature is only available for Async Upload from the Screenshot Menu.
+
 I've found this program useful to share screenshots with others in chat systems and
 social networks. The wsgi ( python's idea of modern web server ) option let you fire a screenshot from another computer
 using a simple browser  or language or commands like curl or wget.
@@ -69,6 +83,7 @@ boto ( python module to deal with s3 , available at http://code.google.com/p/bot
 Optional python modules that activate additional features:
 PIL ( Image Library ) it will be used to generate a screenshot in jpeg format besides png default.
 Growl ( Mac OS X )
+twyt
 
 
 How to run
@@ -87,7 +102,7 @@ Fedora 11
 
 ---------------------------------------------------------------------------------------
 License:  Apache
-Author: Domingo Aguilera ( @batok in twitter ) domingo.aguilera@gmail.com
+Author: Domingo Aguilera ( aka @batok in twitter ) domingo.aguilera@gmail.com
 
-TODO: Create buckets, post url of screenshot and short comment to twitter.
+TODO: Create S3 buckets.
 
