@@ -1,9 +1,10 @@
-A program to take and store screenshots in Amazon Web Services S3
+A program to take screenshots from your computer ( Windows , Mac or Linux )  and store them in Amazon Web Services S3
 
 Description:
 
 A multiplatform desktop (GUI) program to take screenshots and upload them to Amazon's S3.
--------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
+
 First of all, you need an S3 account in Amazon Web Services.  If you don't know what S3 is, go to http://aws.amazon.com/s3/
 
 Second, create a bucket ( kind of filesystem directory  ) in S3's therminology.  
@@ -50,7 +51,7 @@ bitly_apikey = "yourapikey"
 
 Also you'll have "right click or context" options to upload any file you want in private or public-read mode.  Not only the screenshots.
 
-You'll have also an option to take a timed screenshot and upload it to s3 asynchronously also.  That is in a separate thread without blocking the GUI.
+You'll have also an option to take a timed screenshot and upload it to s3 asynchronously also.  That is, in a separate thread without blocking the GUI.
 
 If you are in Mac OS X and have the Growl module installed ( it is included in the bindings python section of growl SDK ) 
 sc2s3 will notify to growl when the screenshot is uploaded to s3 instead of the normal modal message box.
