@@ -91,7 +91,8 @@ class UploadThread( Thread ):
 		
 		try:
 			s3accounts.twitter_message
-			wx.CallAfter( self.window.ShortenAndTweet, self.png_image)
+			if self.window.tweet:
+				wx.CallAfter( self.window.ShortenAndTweet, self.png_image)
 		except:
 			pass
 		
@@ -155,7 +156,7 @@ class Screenshot(object):
 
 class MainFrame( wx.Frame ):
 	def __init__(self):
-		wx.Frame.__init__(  self, None, -1, "Screenshot to s3", size = (650,500))
+		wx.Frame.__init__(  self, None, -1, "Screenshot to S3", size = (650,500))
 		mb = wx.MenuBar()
 		accounts_menu = wx.Menu()
 		self.accounts = dict()
@@ -183,10 +184,23 @@ class MainFrame( wx.Frame ):
 		upload = wx.Menu()
 		self.Bind( wx.EVT_MENU, self.OnUploadAFile, upload.Append(-1, "Upload a File in Private Mode"))
 		self.Bind( wx.EVT_MENU, self.OnUploadAFileInPublicMode, upload.Append(-1, "Upload a File in Public Mode"))
+		
+		twitter = wx.Menu()
+		id = wx.NewId()
+		mitem = twitter.AppendRadioItem( id, "Tweet")
+		self.Bind( wx.EVT_MENU, lambda _ : setattr(self,"tweet",True), mitem)
+		
+		id = wx.NewId()
+		mitem = twitter.AppendRadioItem( id, u"Don't Tweet")
+		mitem.Check(True)
+		self.tweet = False
+		self.Bind( wx.EVT_MENU, lambda _ : setattr(self,"tweet",False), mitem)
+		
 		mb.Append( accounts_menu, "Accounts")
 		mb.Append( bucket, "Bucket" )
 		mb.Append( screenshot, "Screenshot")
 		mb.Append( upload, "Upload")
+		mb.Append( twitter, "Twitter")
 		self.SetMenuBar( mb )
 
 		self.popupmenu = wx.Menu()
