@@ -26,6 +26,7 @@ from datetime import datetime
 from threading import Thread
 from wsgiref.simple_server import make_server
 import cStringIO as  StringIO
+from hashlib import md5
 try:
 	from PIL import Image,ImageFilter
 except:
@@ -137,7 +138,7 @@ class WebServer(Thread):
 		self.join()
 	
 class Screenshot(object):
-	def __init__(self, filename = "snap.png"):
+	def __init__(self, filename = "snap.png", gravatar = None):
 		self.filename = filename
 		try:
 			p = wx.GetDisplaySize()
@@ -147,6 +148,14 @@ class Screenshot(object):
 			memdc = wx.MemoryDC()
 			memdc.SelectObject(bitmap)
 			memdc.Blit(0,0, p.x, p.y, dc, 0,0)
+			try:
+				msg = s3accounts.message
+				memdc.SetFont(wx.Font(16, wx.SWISS, wx.NORMAL, wx.BOLD, True))
+				memdc.DrawText(msg, 25,100)
+			except:
+				pass
+			if not gravatar is None:
+				memdc.DrawBitmap(gravatar, 25,  130, True )
 			memdc.SelectObject(wx.NullBitmap)
 			bitmap.SaveFile(filename, wx.BITMAP_TYPE_PNG )
 
@@ -237,7 +246,18 @@ class MainFrame( wx.Frame ):
 		self.sizer.Add( self.listctrl, 1, wx.GROW)
 		self.Bind(wx.EVT_LIST_ITEM_SELECTED, self.OnLCtrl,  self.listctrl)
 		self.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.OnRightClick,  self.listctrl)
-		self.staticbitmap = wx.StaticBitmap(self.panel,-1,wx.EmptyBitmap( 100,100))
+		bitmap = wx.EmptyBitmap( 100,100)
+		self.staticbitmap = wx.StaticBitmap(self.panel,-1,bitmap)
+		try:
+			self.gravatarurl = "http://www.gravatar.com/avatar/{0}/s=30".format(md5(s3accounts.gravatar).hexdigest())
+			stream = StringIO.StringIO(urllib.urlopen(self.gravatarurl).read())
+			bmp = wx.BitmapFromImage(wx.ImageFromStream(stream))
+			self.gravatarimage = bmp
+			self.staticbitmap.SetBitmap(bmp)
+			
+		except:
+			self.gravatarurl = ""
+				
 		self.sizer.Add( self.staticbitmap, 1, wx.GROW)
 		self.panel.SetBackgroundColour( wx.NamedColour( "black"))
 		self.panel.SetSizer( self.sizer )
@@ -445,7 +465,11 @@ class MainFrame( wx.Frame ):
 	
 			sfile_thumbnail = "{0}_thumbnail.jpg".format(sfile)
 			sfile = "{0}.png".format(sfile)
-			Screenshot(filename = sfile)
+			try:
+				gravatar = self.gravatarimage
+			except:
+				gravatar = None
+			Screenshot(filename = sfile, gravatar = gravatar)
 			image2 = wx.Image(sfile, wx.BITMAP_TYPE_ANY)
 				
 			width = image2.GetWidth()
@@ -512,7 +536,12 @@ class MainFrame( wx.Frame ):
 
     		sfile_thumbnail = "{0}_thumbnail.jpg".format(sfile)
 		sfile = "{0}.png".format(sfile)
-		Screenshot(filename = sfile)
+		try:
+			gravatar = self.gravatarimage
+		except:
+			gravatar = None
+			
+		Screenshot(filename = sfile, gravatar = gravatar)
 				
 		image2 = wx.Image(sfile, wx.BITMAP_TYPE_ANY)
 		width = image2.GetWidth()
@@ -534,17 +563,27 @@ class MainFrame( wx.Frame ):
     		sfile_thumbnail = "{0}_thumbnail.jpg".format(sfile)
 		sfile_jpg = "{0}.jpg".format(sfile)
     		sfile = "{0}.png".format(sfile)
-		
-		Screenshot(filename = sfile)
+		try:
+			gravatar = self.gravatarimage
+		except:
+			gravatar = None
+			
+		Screenshot(filename = sfile, gravatar = gravatar)
 		try:
 			Image
 			with open(sfile, "rb") as f1:
 				f_jpg = StringIO.StringIO()
 				im = Image.open(f1)
 				im.filter(ImageFilter.CONTOUR)
+				box = ( 100,100,400,400 )
+				region = im.crop(box)
+				region = region.transpose(Image.ROTATE_180)
+				im.paste( region, box )
 				im.save(f_jpg, "JPEG")
+				
 				key_jpeg = self.bucket.new_key( sfile_jpg )
 				headers = {"Content-Type" : "image/jpeg"}
+				
 				key_jpeg.set_contents_from_file( f_jpg, headers = headers, policy = "public-read" )
 				
 		except:

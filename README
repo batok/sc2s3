@@ -70,6 +70,18 @@ Choose the most up to date tar.gz file that you have to unpack and procede to do
 
 The tweet feature is only available for Async Upload from the Screenshot Menu.
 
+If you include in s3accounts a line with...
+
+message = "whatever you want to appear as text blended with your image"
+
+the message will be mixed with the screenshot and will appear in the upper left corner.
+
+If you have a gravatar account, and want your image to appear in your screenshots include a line in s3accounts.py with ...
+
+gravatar = "your mail goes here ( i.e. averagejoe@lookmanohands.com )"
+
+By doing this your gravatar default image will appear in the upper left corner of your screnshots.
+
 I've found this program useful to share screenshots with others in chat systems and
 social networks. The wsgi ( python's idea of modern web server ) option let you fire a screenshot from another computer
 using a simple browser  or language or commands like curl or wget.
