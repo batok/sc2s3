@@ -7,7 +7,7 @@ A multiplatform desktop (GUI) program to take screenshots and upload them to Ama
 
 First of all, you need an S3 account in Amazon Web Services.  If you don't know what S3 is, go to http://aws.amazon.com/s3/
 
-Second, create a bucket ( kind of filesystem directory  ) in S3's therminology.  
+Second, create a bucket ( kind of filesystem directory  ) in S3's terminology.  
 
 You need to create the s3accounts.py file in the same directory as the sc2s3.py script file.  You can use any text editor to do so.
 
@@ -93,7 +93,7 @@ Python 2.6.x ( availabe at http://www.python.org )
 wxPython ( wxwidgets module for python ) : version 2.8.9.1 or + ( available at http://www.wxpython.org )
 boto ( python module to deal with s3 , available at http://code.google.com/p/boto.  Also you can easy_install it. )
 
-Optional python modules that activate additional features:
+Optional python modules that enable additional features:
 PIL ( Image Library ) it will be used to generate a screenshot in jpeg format besides png default.
 Growl ( Mac OS X )
 twyt
@@ -117,5 +117,5 @@ Fedora 11
 License:  Apache
 Author: Domingo Aguilera ( aka @batok in twitter ) domingo.aguilera@gmail.com
 
-TODO: Create S3 buckets.
+TODO: A Wizard to setup all needed info ( i.e. aws account, twitter account, gravatar info )
 
