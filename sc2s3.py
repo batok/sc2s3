@@ -624,6 +624,7 @@ class MainFrame( wx.Frame ):
 			except:
 				
 				wx.MessageBox(msg,title )
+			self.last_screenshot_file_name = sfile
 			self.OnListFiles()
 		
 	def BuildListCtrl(self):
@@ -631,7 +632,12 @@ class MainFrame( wx.Frame ):
 			self.listctrl.ClearAll()
 		except:
 			pass
-
+		match  = False
+		try:
+			self.last_screenshot_file_name 
+		except:
+			self.last_screenshot_file_name = ""
+			
 		bg1 = wx.Colour( 239, 235, 239 )
 		bg2 = wx.Colour( 229, 195, 135 )
 		
@@ -655,6 +661,9 @@ class MainFrame( wx.Frame ):
 
 				self.listctrl.SetItemBackgroundColour( i, bgcolor)
 				self.listctrl.SetStringItem( i, 1, key.name)
+				if key.name == self.last_screenshot_file_name:
+					idx = i
+					match = True
 				if "screenshot" in key.name:
 					if "thumbnail" in key.name:
 						self.listctrl.SetItemImage( i, 1, 1)
@@ -668,6 +677,10 @@ class MainFrame( wx.Frame ):
 			self.Refresh()
 		except:
 			pass
+		if match:
+			self.listctrl.EnsureVisible(idx)
+			self.listctrl.SetItemState(idx, wx.LIST_STATE_SELECTED, wx.LIST_STATE_SELECTED)
+			self.selected_file = self.last_screenshot_file_name
 		return
 
 	def OnLCtrl( self, event ):
