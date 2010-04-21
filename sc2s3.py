@@ -96,7 +96,7 @@ class UploadThread( Thread ):
 				wx.CallAfter( self.window.ShortenAndTweet, self.png_image)
 		except:
 			pass
-		
+		wx.CallAfter(setattr, self.window, "last_screenshot_file_name" , self.png_image)
 		wx.CallAfter(self.window.OnListFiles )
 		
 		wx.CallAfter(self.window.staticbitmap.SetBitmap, self.bitmap )
