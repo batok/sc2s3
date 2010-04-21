@@ -15,9 +15,9 @@ s3accounts.py only at least needs a line like this:
 
 accounts = dict ( whatever_you_call_an_account = ["amazon public string", "amazon private string"] )
 
-This program is not only a GUI front end to take and upload screenshots.  Includes also a webserver.
+This program is not only a GUI front end to take and upload screenshots to S3.  Includes also a webserver.
 
-To activate the "wsgi" web server at a specified at run time port ( 8000 is the default ), and a second line to s3accounts.py file:
+To activate the "wsgi" web server , specify port at runtime when asked ( 8000 is the default ).  You'll need to add a second line to s3accounts.py file:
 
 preferred_bucket = "thenameofabucketofyours"
 
@@ -112,6 +112,7 @@ Windows Vista
 Windows 7
 Mac OS X ( Panther, Tiger and Leopard )
 Fedora 11
+Ubuntu Karmic Koala
 
 ---------------------------------------------------------------------------------------
 License:  Apache
