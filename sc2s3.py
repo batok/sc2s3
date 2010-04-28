@@ -182,6 +182,7 @@ class MainFrame( wx.Frame ):
 		
 		bucket = wx.Menu()
 		self.Bind(wx.EVT_MENU, self.OnSetBucket, bucket.Append(-1, "Set Bucket"))
+		self.Bind(wx.EVT_MENU,self.OnCreateBucket, bucket.Append(-1, "Create Bucket"))
 		self.Bind(wx.EVT_MENU, self.OnListFiles, bucket.Append(-1, "List Files"))
 		
 		screenshot = wx.Menu()
@@ -266,7 +267,7 @@ class MainFrame( wx.Frame ):
 		self.webserver = None
 		try:
 			pb = s3accounts.preferred_bucket
-			dlg = wx.MessageDialog(self, "Do you want to run a webserver to control this application with a browser?", "Webserver", style = wx.YES_NO)
+			dlg = wx.MessageDialog(self, "Do you want to run the embedded wsgi webserver to control this application with a browser?", "Webserver", style = wx.YES_NO)
 			retCode = dlg.ShowModal()
 			if retCode == wx.ID_YES:
 				port = wx.GetNumberFromUser("Port to run the webserver", "Port", "Webserver", value = 8000, min = 8000, max = 8100 )
@@ -696,6 +697,15 @@ class MainFrame( wx.Frame ):
 		self.BuildListCtrl()
 		self.label.SetLabel(u"S3 account : {2} -- Bucket {0} contains {1} file(s)".format(self.bucket_name,len(self.bucket.get_all_keys()),self.account_name ) )
 
+	def OnCreateBucket(self,event = None):
+		new_bucket = wx.GetTextFromUser("Type bucket name", "S3 Bucket")
+		in_message = ""
+		try:
+			b = self.connection.create_bucket(new_bucket)
+		except:
+			in_message = "NOT"
+		wx.MessageBox("Bucket {0} {1} created !!".format(new_bucket, in_message))
+			
 	def OnSetBucket( self, event = None):
 		try:
 			self.bucket_name
