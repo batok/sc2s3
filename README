@@ -7,7 +7,7 @@ A multiplatform desktop (GUI) program to take screenshots and upload them to Ama
 
 First of all, you need an S3 account in Amazon Web Services.  If you don't know what S3 is, go to http://aws.amazon.com/s3/
 
-Second, create a bucket ( kind of filesystem directory  ) in S3's terminology.  
+Second, create a bucket ( kind of filesystem directory  ) in S3's terminology or select one from the list of already created.  
 
 You need to create the s3accounts.py file in the same directory as the sc2s3.py script file.  You can use any text editor to do so.
 
@@ -37,7 +37,7 @@ the same computer with the url http://localhost:8000/click if in the same comput
 Also you can take a screenshot series.  By doing this, the program will generate also 
 an index html page to link every screenshot and will upload it to s3 besides all screenshots. 
 
-Every time a screenshot is done , sc2s3 will also upload a thumbnail of the screenshot.
+Every time a screenshot is taken , sc2s3 will also upload a thumbnail of it.
 
 If PIL ( Pyrhon Image Library ) is detected , will generate also a jpg file that will upload to s3.
 
@@ -84,7 +84,7 @@ By doing this your gravatar default image will appear in the upper left corner o
 
 I've found this program useful to share screenshots with others in chat systems and
 social networks. The wsgi ( python's idea of modern web server ) option let you fire a screenshot from another computer
-using a simple browser  or language or commands like curl or wget.
+using a simple browser, programming language or commands like curl or wget.
 
 ------------------------------------------------------------------------------
 Requirements
@@ -93,10 +93,14 @@ Python 2.6.x ( availabe at http://www.python.org )
 wxPython ( wxwidgets module for python ) : version 2.8.9.1 or + ( available at http://www.wxpython.org )
 boto ( python module to deal with s3 , available at http://code.google.com/p/boto.  Also you can easy_install it. )
 
+( I recommend using pip to install svn version of boto module ) .  The way to go is ... 
+
+[sudo] pip install -e svn+http://boto.googlecode.com/svn/trunk/#boto 
+
 Optional python modules that enable additional features:
 PIL ( Image Library ) it will be used to generate a screenshot in jpeg format besides png default.
-Growl ( Mac OS X )
-twyt
+Growl ( for Mac OS X )
+twyt ( for sending tweets )
 
 
 How to run
@@ -116,7 +120,7 @@ Ubuntu Karmic Koala
 
 ---------------------------------------------------------------------------------------
 License:  Apache
-Author: Domingo Aguilera ( aka @batok in twitter ) domingo.aguilera@gmail.com
+Author: Domingo Aguilera ( aka @batok in twitter ) domingo.aguilera@gmail.com.  Aka @jdaguilera ( spanish tweets ).
 
 TODO: A Wizard to setup all needed info ( i.e. aws account, twitter account, gravatar info )
 
