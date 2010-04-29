@@ -205,7 +205,10 @@ class MainFrame( wx.Frame ):
 		mitem.Check(True)
 		self.tweet = False
 		self.Bind( wx.EVT_MENU, lambda _ : setattr(self,"tweet",False), mitem)
-		
+		id = wx.NewId()
+		citem = bucket.AppendCheckItem(id, u"List Only Screenshots")
+		self.screenshots_only = False
+		self.Bind( wx.EVT_MENU, self.OnOnlyScreenshots, id = id)
 		mb.Append( accounts_menu, "Accounts")
 		mb.Append( bucket, "Bucket" )
 		mb.Append( screenshot, "Screenshot")
@@ -297,6 +300,10 @@ class MainFrame( wx.Frame ):
 		
 		self.Destroy()
 		
+	def OnOnlyScreenshots(self,event):	
+		self.screenshots_only = event.Checked()
+		self.BuildListCtrl()
+	
 	def OnDeleteFile(self, event):
 		if  wx.MessageBox("Do you really want to delete {0}".format(self.selected_file), "Delete File", wx.YES_NO) == wx.YES:
 			self.bucket.delete_key( self.selected_file )
@@ -649,6 +656,8 @@ class MainFrame( wx.Frame ):
 
 		try:
 			for x, key in enumerate(self.bucket.get_all_keys()):
+				if self.screenshots_only and not key.name.startswith("screenshot"):
+					continue
 				try:
 					if self.restrict_number and x >= 1000:
 						return
