@@ -40,6 +40,8 @@ except:
 import urllib
 import json
 import os
+from dectools.dectools import make_call_before, make_call_after
+
 IMAGE_WIDTH = 200
 
 Smiles = PyEmbeddedImage(
@@ -58,7 +60,15 @@ Smiles = PyEmbeddedImage(
     "w9gYzM6CX3HwKzaz71cYu/uV7rMvcLb2Mf3srbURi81WNJdLK5HYLuMi46LEng7lMlc2Xec/"
     "xiMt8QU2mDwAAAAASUVORK5CYII=")
 
+@make_call_before
+def begincursor(function, args, kwargs):
+	wx.BeginBusyCursor()
+	return True
 
+@make_call_after
+def endcursor(function, args, kwargs):
+	wx.EndBusyCursor()
+	return True
 
 class UploadThread( Thread ):
 	def __init__(self, window, bitmap, bucket, notifier,png_image, thumbnail):
@@ -206,6 +216,7 @@ class MainFrame( wx.Frame ):
 		self.tweet = False
 		self.Bind( wx.EVT_MENU, lambda _ : setattr(self,"tweet",False), mitem)
 		id = wx.NewId()
+		bucket.AppendSeparator()
 		citem = bucket.AppendCheckItem(id, u"List Only Screenshots")
 		self.screenshots_only = False
 		self.Bind( wx.EVT_MENU, self.OnOnlyScreenshots, id = id)
@@ -634,7 +645,9 @@ class MainFrame( wx.Frame ):
 				wx.MessageBox(msg,title )
 			self.last_screenshot_file_name = sfile
 			self.OnListFiles()
-		
+			
+	@endcursor
+	@begincursor	
 	def BuildListCtrl(self):
 		try:
 			self.listctrl.ClearAll()

@@ -94,8 +94,18 @@ wxPython ( wxwidgets module for python ) : version 2.8.9.1 or + ( available at h
 boto ( python module to deal with s3 , available at http://code.google.com/p/boto.  Also you can easy_install it. )
 
 ( I recommend using pip to install svn version of boto module ) .  The way to go is ... 
+If you don't have pip installed , do ... 
 
-[sudo] pip install -e svn+http://boto.googlecode.com/svn/trunk/#boto 
+[sudo] easy_install pip
+
+that would install pip script.  After that you can ...
+
+[sudo] pip install -e svn+http://boto.googlecode.com/svn/trunk/#boto
+
+Now decorator and dectools python modules are needed.  Both modules can be installed using pip...
+
+[sudo] pip install decorator
+[sudo] pip install dectools
 
 Optional python modules that enable additional features:
 PIL ( Image Library ) it will be used to generate a screenshot in jpeg format besides png default.
