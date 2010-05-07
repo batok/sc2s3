@@ -16,11 +16,14 @@
 #limitations under the License.
 
 import wx
+
+
 from wx.lib.embeddedimage import PyEmbeddedImage
 from boto import connect_s3
 import sys
 import wx.html as html
 import s3accounts
+
 import time
 from datetime import datetime
 from threading import Thread
@@ -40,7 +43,7 @@ except:
 import urllib
 import json
 import os
-from dectools.dectools import make_call_before, make_call_after
+from dectools.dectools import make_call_before, make_call_after, make_call_once
 
 IMAGE_WIDTH = 200
 
@@ -69,6 +72,18 @@ def begincursor(function, args, kwargs):
 def endcursor(function, args, kwargs):
 	wx.EndBusyCursor()
 	return True
+
+@make_call_once
+def notify_usage( function ):
+	try:
+		from boto.sns import SNSConnection
+		c = SNSConnection(*s3accounts.accounts.get(s3accounts.preferred_account))
+		message = "Using sc2s3 at {0}".format( datetime.now().isoformat() )
+		c.publish(s3accounts.arn_sns, message  )
+
+	except: 
+		pass
+	return
 
 class UploadThread( Thread ):
 	def __init__(self, window, bitmap, bucket, notifier,png_image, thumbnail):
@@ -646,6 +661,7 @@ class MainFrame( wx.Frame ):
 			self.last_screenshot_file_name = sfile
 			self.OnListFiles()
 			
+	@notify_usage		
 	@endcursor
 	@begincursor	
 	def BuildListCtrl(self):
