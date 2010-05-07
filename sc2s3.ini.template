@@ -1,0 +1,13 @@
+preferred_account = whaterveryoucallit
+[whateveryoucallit]
+preferred_bucket= certainbucketcreatedbyU
+aws_access_key_id = 3Ak8M9AQT9GAMQ44514D
+aws_secret_access_key = AvuurPRNmqqg9V55ZDVBantQ622lkf9sAAqxyW+
+bitly_login = bitlyusername
+bitly_apikey = R_2121d234e89ev8aaf6d9d363431a1123
+twitter_user = atwitteruser
+twitter_password = thepasswordoftwitteruser
+twitter_message = My screenshot (courtesy of sc2s3 is ) here
+gravatar = hereiam@whatervermail.com
+message = Screenshot brought to you by sc2s3
+arn_sns = arn:aws:sns:us-east-1:282285415266:topicforsc2s3
