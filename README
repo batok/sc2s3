@@ -11,39 +11,42 @@ If you don't know what S3 is, go to http://aws.amazon.com/s3/
 
 Second...
 
-Create a bucket ( kind of filesystem directory  in S3's terminology ) or select one from the list of already created.  
+Create a bucket ( kind of filesystem directory  in S3's terminology ) or pick one from the list you have already.  
 
-You need to create a sc2s3.ini file in the same directory as the sc2s3.py script file.  
+You need to specify some configuration data.  Edit a sc2s3.ini file in the same directory as the sc2s3.py script file.  
 
-There's a sc2s3.ini.template that you can use as guide.
+There's an sc2s3.ini.template that you can use as guide.
 
-This program is not only a GUI front end to take and upload screenshots to S3.  Includes also a webserver.
+This program is not only a GUI front end to take and upload screenshots to S3.  Includes also a webserver running in a thread.
 
 To activate the "wsgi" web server , specify port at runtime when asked ( 8000 is the default ).  
 
-You can use more the one S3 accounts with this program.
+Your sc2s3.ini  can specify more than one S3 accounts.
 
-The purpose of the "embedded" web server is to allow taking a snapshot from another computer ( or
-the same computer with the url http://localhost:8000/click if in the same computer or http://ipaddressoftherunningcomputer:8000/click ) ( 8000 if default was chosen )
+The purpose of the "embedded" web server is to allow taking a snapshot from another computer 
+( or the same computer with the url http://localhost:8000/click 
+if in the same computer or http://ipaddressoftherunningcomputer:8000/click ) ( port 8000 is used if default was chosen )
 
 Also you can take a screenshot series.  By doing this, the program will generate also 
 an index html page to link every screenshot and will upload it to s3 besides all screenshots. 
 
-Every time a screenshot is taken , sc2s3 will also upload a thumbnail of it.
+Every time a screenshot is taken, sc2s3 will also upload a thumbnail of it.
 
 If PIL ( Pyrhon Image Library ) is detected , will generate also a jpg file that will upload to s3.
 
 By selecting and right clicking on a row in the list of uploaded files you will get a lot of additional options.
 
 One of these additional options is to shorten the amazon url with bit.ly.
-Also you'll have "right click or context" options to upload any file you want in private or public-read mode.  Not only the screenshots.
+Also you'll have "right click or context" options to upload any file you want in private or public-read mode.
+Not only the screenshots.
 
-You'll have also an option to take a timed screenshot and upload it to s3 asynchronously also.  That is, in a separate thread without blocking the GUI.
+You'll have also an option to take a timed screenshot and upload it to s3 asynchronously also.
+That is, in a separate thread without blocking the GUI.
 
 If you are in Mac OS X and have the Growl module installed ( it is included in the bindings python section of growl SDK ) 
 sc2s3 will notify to growl when the screenshot is uploaded to s3 instead of the normal modal message box.
 
-You can tweet a message with enshorten by bit.ly link of your screenshot. 
+You can tweet a message and generate a short link by bit.ly of your screenshot. 
 
 To use the tweeter feature you need to download the python module twyt module from http://andrewprice.me.uk/projects/twyt/download/ 
 
@@ -53,7 +56,7 @@ The tweet feature is only available for Async Upload from the Screenshot Menu.
 
 Whatever you include in the message directive in sc2s3.ini will be mixed with the screenshot and will appear in the upper left corner.
 
-If you have a gravatar account, and want your image to appear in your screenshots include a line in sc2s3.ini with ...
+If you have a gravatar account, and want your image mixed in your screenshots include a line in sc2s3.ini with ...
 
 gravatar = "your mail goes here ( i.e. averagejoe@lookmanohands.com )"
 
@@ -79,22 +82,23 @@ that would install pip script.  After that you can ...
 
 [sudo] pip install -e svn+http://boto.googlecode.com/svn/trunk/#boto
 
-Now decorator and dectools python modules are needed.  Both modules can be installed using pip...
+ConfigObj, decorator and dectools python modules are needed.  These modules can be installed using pip...
 
 [sudo] pip install decorator
 [sudo] pip install dectools
+[sudo] pip install ConfigObj
 
 Optional python modules that enable additional features:
 PIL ( Image Library ) it will be used to generate a screenshot in jpeg format besides png default.
 Growl ( for Mac OS X )
 twyt ( for sending tweets )
+boto from svn ( to use the sns feature )
 
 
-How to run
+How to run...
 
 Like any other python program
 python sc2s3.py  ( depending on the platform may be pythonw sc2s3.py ).
-"Don't forget to create s3accounts.py as stated above"
 
 ---------------------------------------------------------------------------------------
 This python program has been tested in:
@@ -111,7 +115,7 @@ Author: Domingo Aguilera ( aka @batok in twitter and IRC ) domingo.aguilera@gmai
 
 TODO: 
 
-Validate running in Snow Leopard ( python 64 bit and wxpython 32 bit is bit tricky ).
+Validate that can be run in Snow Leopard ( python 64 bit and wxpython 32 bit is a little bit tricky ).
 A Wizard to setup all needed info ( i.e. aws account, twitter account, gravatar info )
 More SNS related features.
 A simple cmd2 based shell for manipulating the GUI.
